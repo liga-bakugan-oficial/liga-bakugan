@@ -98,11 +98,17 @@
     background: rgba(0, 240, 255, 0.3);
   }
 
-  /* CONTROL DE AUDIO */
-  .audio-fab {
+  /* CONTROL DE HEADER (audio + login + ajustes) */
+  .header-controls {
     position: absolute;
     top: 10px;
     left: 12px;
+    display: flex;
+    gap: 6px;
+    z-index: 20;
+    align-items: center;
+  }
+  .header-fab {
     width: 34px;
     height: 34px;
     border-radius: 8px;
@@ -114,13 +120,30 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 20;
     transition: 0.2s;
+    padding: 0;
+    line-height: 1;
   }
-  .audio-fab:hover {
+  .header-fab:hover {
     background: rgba(0, 240, 255, 0.3);
   }
-  .audio-panel {
+  .header-fab.login-fab {
+    border-color: rgba(255, 0, 170, 0.45);
+    color: var(--neon-magenta);
+    background: rgba(255, 0, 170, 0.1);
+  }
+  .header-fab.login-fab:hover {
+    background: rgba(255, 0, 170, 0.3);
+  }
+  .header-fab.logout-fab {
+    border-color: rgba(255, 68, 119, 0.5);
+    color: #ff6688;
+    background: rgba(255, 0, 85, 0.12);
+  }
+  .header-fab.logout-fab:hover {
+    background: rgba(255, 0, 85, 0.3);
+  }
+  .audio-panel, .settings-panel {
     display: none;
     position: absolute;
     top: 48px;
@@ -130,13 +153,13 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 12px;
-    width: 200px;
+    width: 220px;
     box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
   }
-  .audio-panel.open {
+  .audio-panel.open, .settings-panel.open {
     display: block;
   }
-  .audio-panel label {
+  .audio-panel label, .settings-panel label {
     font-size: 0.65rem;
     margin-bottom: 6px;
   }
@@ -145,9 +168,42 @@
     margin-bottom: 10px;
     accent-color: var(--neon-cyan);
   }
-  .audio-panel .btn-sm {
+  .audio-panel .btn-sm, .settings-panel .btn-sm {
     width: 100%;
     margin-bottom: 0;
+  }
+  .visitor-banner {
+    background: linear-gradient(90deg, rgba(255,0,170,0.15), rgba(0,240,255,0.12));
+    border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+    padding: 8px 14px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: rgba(224, 247, 255, 0.9);
+    letter-spacing: 0.3px;
+  }
+  .visitor-banner strong {
+    color: var(--neon-cyan);
+  }
+  .visitor-banner a, .visitor-banner button.linkish {
+    background: none;
+    border: none;
+    color: var(--neon-magenta);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    letter-spacing: 0.5px;
+  }
+  body.visitor-mode #tab-perfil-btn,
+  body.visitor-mode #tab-admin-btn {
+    display: none !important;
+  }
+  body.visitor-mode .btn-duel {
+    display: none !important;
+  }
+  body.visitor-mode #guide-character {
+    display: none !important;
   }
 
   /* FOOTER COMUNIDAD / DISCORD */
@@ -959,11 +1015,11 @@
   .section { display: none; }
   .section.active { display: block; }
 
-  /* BIENVENIDA FULL */
+  /* BIENVENIDA / LOGIN OVERLAY */
   #welcome-screen {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 300;
     background: rgba(5,5,15,0.97);
     display: flex;
     flex-direction: column;
@@ -973,6 +1029,39 @@
     text-align: center;
   }
   #welcome-screen.hidden { display: none; }
+  .welcome-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(0, 240, 255, 0.1);
+    border: 1px solid var(--border);
+    color: var(--neon-cyan);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    z-index: 5;
+  }
+  .welcome-close-btn:hover {
+    background: rgba(0, 240, 255, 0.3);
+  }
+  .welcome-guest-link {
+    margin-top: 16px;
+    font-size: 0.85rem;
+    opacity: 0.85;
+  }
+  .welcome-guest-link button {
+    background: none;
+    border: none;
+    color: var(--neon-cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: underline;
+    letter-spacing: 0.5px;
+  }
 
   .welcome-char {
     width: 140px;
@@ -1139,13 +1228,14 @@
 <div class="hex-bg"></div>
 
 <!-- ============ PANTALLA DE BIENVENIDA / LOGIN-REGISTRO ============ -->
-<div id="welcome-screen">
+<div id="welcome-screen" class="hidden">
+  <button type="button" class="welcome-close-btn" onclick="closeLoginOverlay()" title="Seguir como visitante">✕</button>
   <img src="Lady_fenne_04.png" alt="Guía" class="welcome-char" id="welcome-char-img"
        onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23111%22 stroke=%22%23ff00aa%22 stroke-width=%223%22/%3E%3Ctext x=%2250%22 y=%2258%22 text-anchor=%22middle%22 fill=%22%23ff00aa%22 font-size=%2230%22%3E?%3C/text%3E%3C/svg%3E'">
 
   <div class="welcome-bubble" id="welcome-text">
     ¡Bienvenido Brawler a la <strong>Liga Bakugan</strong>!<br><br>
-    Inicia sesión o crea tu cuenta para guardar tu progreso.
+    Inicia sesión o crea tu cuenta para guardar tu progreso y duelar.
   </div>
 
   <div style="width:100%; max-width:320px;">
@@ -1205,18 +1295,27 @@
       <button class="btn" onclick="doRegister()" style="margin-top:4px;">CREAR CUENTA</button>
       <p id="register-error" style="color:#ff4477; font-size:0.8rem; margin-top:8px; display:none;"></p>
     </div>
+
+    <div class="welcome-guest-link">
+      <button type="button" onclick="closeLoginOverlay()">👀 Continuar como visitante</button>
+    </div>
   </div>
 </div>
 
 <!-- ============ APP PRINCIPAL ============ -->
-<div class="app" id="main-app" style="display:none;">
+<div class="app" id="main-app" style="display:flex;">
 
   <header>
-    <button class="audio-fab" id="audio-fab-btn" onclick="toggleAudioPanel()" title="Ajustes de sonido">🔊</button>
-    <div class="audio-panel" id="audio-panel">
+    <div class="header-controls">
+      <button class="header-fab" id="settings-fab-btn" onclick="toggleSettingsPanel()" title="Ajustes">⚙️</button>
+    </div>
+    <div class="settings-panel" id="settings-panel">
+      <label style="color:var(--neon-cyan); letter-spacing:1px; text-transform:uppercase;">Ajustes</label>
+      <p style="font-size:0.75rem; opacity:0.8; margin:6px 0 10px; line-height:1.35;">Sonido y sesión</p>
       <label>Volumen</label>
       <input type="range" id="audio-volume" min="0" max="100" value="40" oninput="setMusicVolume(this.value)" />
-      <button class="btn btn-sm" id="audio-mute-btn" onclick="toggleMute()">🔇 Silenciar</button>
+      <button class="btn btn-sm" id="audio-mute-btn" onclick="toggleMute()" style="margin-bottom:10px;">🔇 Silenciar</button>
+      <button class="btn btn-sm" id="settings-auth-btn" onclick="handleAuthFabClick(); closeSettingsPanel();">🔑 Iniciar sesión</button>
     </div>
     <div class="logo-title">
       <img src="LOGO-BAKUGAN.png" alt="Bakugan" class="logo-img" onerror="this.style.display='none'">
@@ -1227,9 +1326,14 @@
     </div>
   </header>
 
+  <div id="visitor-banner" class="visitor-banner">
+    Estás en modo <strong>visita</strong> · Podés ver Liga, Noticias y Glosario.
+    <button type="button" class="linkish" onclick="openLoginOverlay()">Iniciá sesión</button> para perfil y duelos.
+  </div>
+
   <div class="tabs">
-    <button class="tab-btn active" data-tab="perfil">PERFIL</button>
-    <button class="tab-btn" data-tab="liga">LIGA</button>
+    <button class="tab-btn" id="tab-perfil-btn" data-tab="perfil" style="display:none;">PERFIL</button>
+    <button class="tab-btn active" data-tab="liga">LIGA</button>
     <button class="tab-btn" data-tab="noticias">NOTICIAS</button>
     <button class="tab-btn" data-tab="glosario">GLOSARIO</button>
     <button class="tab-btn" id="tab-admin-btn" data-tab="admin" style="display:none; color: var(--neon-magenta);">ADMIN</button>
@@ -1238,7 +1342,7 @@
   <div class="content">
 
     <!-- ===== PERFIL ===== -->
-    <div class="section active" id="sec-perfil">
+    <div class="section" id="sec-perfil">
       <div class="panel">
         <h3 style="font-family:'Orbitron';color:var(--neon-cyan);margin-bottom:12px;font-size:0.9rem;">MI PERFIL</h3>
 
@@ -1378,7 +1482,7 @@
     </div>
 
     <!-- ===== LIGA ===== -->
-    <div class="section" id="sec-liga">
+    <div class="section active" id="sec-liga">
       <div class="panel">
         <h3 style="font-family:'Orbitron';color:var(--neon-cyan);margin-bottom:12px;font-size:0.9rem;">RANKING DE LA LIGA</h3>
         <div class="rank-scroll">
@@ -2304,9 +2408,72 @@ async function doLogin() {
   }
 }
 
+function openLoginOverlay() {
+  const ws = document.getElementById('welcome-screen');
+  if (ws) {
+    ws.classList.remove('hidden');
+    showAuthForm('login');
+  }
+}
+
+function closeLoginOverlay() {
+  const ws = document.getElementById('welcome-screen');
+  if (ws) ws.classList.add('hidden');
+}
+
+function handleAuthFabClick() {
+  if (currentUserId) {
+    logout();
+  } else {
+    openLoginOverlay();
+  }
+}
+
+function updateAuthFabUI() {
+  const settingsAuth = document.getElementById('settings-auth-btn');
+  const banner = document.getElementById('visitor-banner');
+  const perfilTab = document.getElementById('tab-perfil-btn');
+
+  if (currentUserId) {
+    document.body.classList.remove('visitor-mode');
+    if (settingsAuth) {
+      settingsAuth.textContent = '🚪 Cerrar sesión';
+      settingsAuth.onclick = () => { closeSettingsPanel(); logout(); };
+    }
+    if (banner) banner.style.display = 'none';
+    if (perfilTab) perfilTab.style.display = '';
+  } else {
+    document.body.classList.add('visitor-mode');
+    if (settingsAuth) {
+      settingsAuth.textContent = '🔑 Iniciar sesión';
+      settingsAuth.onclick = () => { closeSettingsPanel(); openLoginOverlay(); };
+    }
+    if (banner) banner.style.display = 'block';
+    if (perfilTab) perfilTab.style.display = 'none';
+  }
+}
+
+function enterVisitorMode() {
+  currentUserId = null;
+  isAdminMode = false;
+  document.getElementById('welcome-screen').classList.add('hidden');
+  document.getElementById('main-app').style.display = 'flex';
+  updateAuthFabUI();
+  const tabAdmin = document.getElementById('tab-admin-btn');
+  if (tabAdmin) tabAdmin.style.display = 'none';
+  // Cerrar guía si estaba abierta
+  const bubble = document.getElementById('guide-bubble');
+  if (bubble) bubble.style.display = 'none';
+  renderRanking();
+  renderNews();
+  switchTab('liga');
+  playLobbyMusic();
+}
+
 function enterApp() {
   document.getElementById('welcome-screen').classList.add('hidden');
   document.getElementById('main-app').style.display = 'flex';
+  updateAuthFabUI();
   buildAvatarGrid();
   renderProfile();
   renderRanking();
@@ -2320,8 +2487,20 @@ function enterApp() {
 function logout() {
   if (confirm('¿Cerrar sesión?')) {
     stopAllMusic();
+    leaveDuelRoom(true);
     auth.signOut();
   }
+}
+
+function toggleSettingsPanel() {
+  unlockMusic();
+  const panel = document.getElementById('settings-panel');
+  if (panel) panel.classList.toggle('open');
+}
+
+function closeSettingsPanel() {
+  const panel = document.getElementById('settings-panel');
+  if (panel) panel.classList.remove('open');
 }
 
 /* ================= MÚSICA DE FONDO ================= */
@@ -2339,8 +2518,6 @@ function applyVolumeToAudios() {
   const battle = getBattleAudio();
   if (lobby) lobby.volume = vol;
   if (battle) battle.volume = vol;
-  const fab = document.getElementById('audio-fab-btn');
-  if (fab) fab.textContent = musicMuted || musicVolume === 0 ? '🔇' : '🔊';
   const muteBtn = document.getElementById('audio-mute-btn');
   if (muteBtn) muteBtn.textContent = musicMuted ? '🔊 Activar sonido' : '🔇 Silenciar';
   const slider = document.getElementById('audio-volume');
@@ -2417,19 +2594,15 @@ function toggleMute() {
   }
 }
 
-function toggleAudioPanel() {
-  unlockMusic();
-  const panel = document.getElementById('audio-panel');
-  if (panel) panel.classList.toggle('open');
-}
-
-// Cerrar panel de audio al tocar afuera
+// Cerrar panel de ajustes al tocar afuera
 document.addEventListener('click', (e) => {
-  const panel = document.getElementById('audio-panel');
-  const fab = document.getElementById('audio-fab-btn');
-  if (!panel || !panel.classList.contains('open')) return;
-  if (panel.contains(e.target) || (fab && fab.contains(e.target))) return;
-  panel.classList.remove('open');
+  const settingsPanel = document.getElementById('settings-panel');
+  const settingsFab = document.getElementById('settings-fab-btn');
+  if (settingsPanel && settingsPanel.classList.contains('open')) {
+    if (!settingsPanel.contains(e.target) && !(settingsFab && settingsFab.contains(e.target))) {
+      settingsPanel.classList.remove('open');
+    }
+  }
 });
 
 // Desbloquear audio con el primer toque en la página
@@ -3111,6 +3284,12 @@ function closeGuideBubble() {
 
 /* ================= NAVEGACIÓN ENTRE SECCIONES ================= */
 function switchTab(tabName) {
+  // Visitantes solo pueden ver liga, noticias y glosario
+  if (!currentUserId && (tabName === 'perfil' || tabName === 'admin')) {
+    openLoginOverlay();
+    return;
+  }
+
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
   });
@@ -3141,6 +3320,7 @@ function getMyPlayer() {
 function openDuelModal(targetUserId) {
   if (!currentUserId) {
     alert('Tenés que iniciar sesión para duelar.');
+    openLoginOverlay();
     return;
   }
   invitedOpponentId = targetUserId || null;
@@ -3498,6 +3678,9 @@ async function leaveDuelRoom(silent) {
 window.addEventListener('DOMContentLoaded', () => {
   listenToDatabase();
   applyVolumeToAudios();
+  document.body.classList.add('visitor-mode');
+  updateAuthFabUI();
+
   // Escuchar cambios de autenticación (sesión persistente)
   auth.onAuthStateChanged(async (user) => {
     if (user) {
@@ -3534,9 +3717,7 @@ window.addEventListener('DOMContentLoaded', () => {
       isAdminMode = false;
       const tab = document.getElementById('tab-admin-btn');
       if (tab) tab.style.display = 'none';
-      document.getElementById('welcome-screen').classList.remove('hidden');
-      document.getElementById('main-app').style.display = 'none';
-      showAuthForm('login');
+      enterVisitorMode();
     }
   });
 });
