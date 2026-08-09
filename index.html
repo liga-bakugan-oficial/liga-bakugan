@@ -436,6 +436,34 @@
     margin-bottom: 16px;
   }
 
+  .deck-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .deck-tab-btn {
+    flex: 1;
+    padding: 8px 6px;
+    background: rgba(0, 20, 40, 0.7);
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    border-radius: 8px;
+    color: rgba(0, 240, 255, 0.55);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .deck-tab-btn.active {
+    color: var(--neon-cyan);
+    border-color: var(--neon-cyan);
+    background: rgba(0, 240, 255, 0.15);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+  }
+  .deck-name-input {
+    margin-bottom: 10px !important;
+  }
+
   .baku-card-editor {
     background: rgba(0, 15, 30, 0.7);
     border: 1px solid var(--border);
@@ -450,6 +478,51 @@
     color: var(--neon-cyan);
     letter-spacing: 1px;
     margin-bottom: 8px;
+  }
+
+  /* Contadores de arena: más estables en móviles */
+  .arena-stat-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    margin-top: 6px;
+  }
+  .arena-stat-btns .btn {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 52px;
+    max-width: 72px;
+    padding: 8px 4px !important;
+    font-size: 0.65rem !important;
+    white-space: nowrap;
+  }
+  .duel-meta-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .duel-meta-box {
+    background: rgba(0, 20, 40, 0.75);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .duel-meta-box .meta-label {
+    font-size: 0.6rem;
+    color: rgba(0, 240, 255, 0.65);
+    letter-spacing: 1px;
+    font-family: 'Orbitron', sans-serif;
+    margin-bottom: 4px;
+  }
+  .duel-meta-box .meta-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.95rem;
+    color: var(--neon-cyan);
+  }
+  .duel-meta-box.priority-box .meta-value {
+    color: var(--neon-magenta);
   }
 
   .baku-input-name {
@@ -1374,14 +1447,23 @@
         <label>Avatar (elige uno)</label>
         <div class="avatar-grid" id="avatar-grid"></div>
 
-        <label style="margin-bottom: 10px; display: block;">Tus 3 Bakugan de equipo (Team Main)</label>
+        <label style="margin-bottom: 10px; display: block;">Tus 3 Decks (3 Bakugan cada uno)</label>
+        <div class="deck-tabs" id="deck-tabs">
+          <button type="button" class="deck-tab-btn active" data-deck="0" onclick="switchProfileDeck(0)">DECK 1</button>
+          <button type="button" class="deck-tab-btn" data-deck="1" onclick="switchProfileDeck(1)">DECK 2</button>
+          <button type="button" class="deck-tab-btn" data-deck="2" onclick="switchProfileDeck(2)">DECK 3</button>
+        </div>
+        <label for="deck-name-input">Nombre del deck</label>
+        <input type="text" id="deck-name-input" class="deck-name-input" placeholder="Nombre del deck..." maxlength="24" />
+        <p style="font-size:0.7rem; opacity:0.65; margin-bottom:10px;">El deck activo se usa en duelos. Tocá una pestaña y marcá “Usar en duelo”.</p>
+        <button type="button" class="btn btn-sm" id="btn-set-active-deck" onclick="setActiveDeckFromProfile()" style="margin-bottom:12px; width:100%;">⭐ Usar este deck en duelo</button>
+        <div id="active-deck-label" style="font-size:0.75rem; color:var(--neon-green); margin-bottom:10px; text-align:center;"></div>
 
         <div class="bakugan-team-container">
           <!-- BAKUGAN 1 -->
           <div class="baku-card-editor" id="baku-card-1">
             <div class="baku-card-header">BAKUGAN #1</div>
             <input type="text" id="baku1-name" placeholder="Nombre del Bakugan..." class="baku-input-name" />
-            
             <div class="baku-stats-row">
               <div class="baku-stat-field">
                 <img src="simbolo_bpower.png" class="baku-icon" alt="B-Power" title="B-Power" />
@@ -1392,7 +1474,6 @@
                 <input type="number" id="baku1-damage" placeholder="Daño" />
               </div>
             </div>
-
             <div class="baku-faction-label">Seleccionar Facción:</div>
             <div class="baku-faction-selector" data-baku-index="1">
               <img src="faccion_pyrus.png" data-faction="Pyrus" title="Pyrus" class="faction-opt" onclick="selectBakuganFaction(1, 'Pyrus', this)" />
@@ -1409,7 +1490,6 @@
           <div class="baku-card-editor" id="baku-card-2">
             <div class="baku-card-header">BAKUGAN #2</div>
             <input type="text" id="baku2-name" placeholder="Nombre del Bakugan..." class="baku-input-name" />
-            
             <div class="baku-stats-row">
               <div class="baku-stat-field">
                 <img src="simbolo_bpower.png" class="baku-icon" alt="B-Power" title="B-Power" />
@@ -1420,7 +1500,6 @@
                 <input type="number" id="baku2-damage" placeholder="Daño" />
               </div>
             </div>
-
             <div class="baku-faction-label">Seleccionar Facción:</div>
             <div class="baku-faction-selector" data-baku-index="2">
               <img src="faccion_pyrus.png" data-faction="Pyrus" title="Pyrus" class="faction-opt" onclick="selectBakuganFaction(2, 'Pyrus', this)" />
@@ -1437,7 +1516,6 @@
           <div class="baku-card-editor" id="baku-card-3">
             <div class="baku-card-header">BAKUGAN #3</div>
             <input type="text" id="baku3-name" placeholder="Nombre del Bakugan..." class="baku-input-name" />
-            
             <div class="baku-stats-row">
               <div class="baku-stat-field">
                 <img src="simbolo_bpower.png" class="baku-icon" alt="B-Power" title="B-Power" />
@@ -1448,7 +1526,6 @@
                 <input type="number" id="baku3-damage" placeholder="Daño" />
               </div>
             </div>
-
             <div class="baku-faction-label">Seleccionar Facción:</div>
             <div class="baku-faction-selector" data-baku-index="3">
               <img src="faccion_pyrus.png" data-faction="Pyrus" title="Pyrus" class="faction-opt" onclick="selectBakuganFaction(3, 'Pyrus', this)" />
@@ -1507,7 +1584,8 @@
         <h3 style="font-family:'Orbitron';color:var(--neon-cyan);margin-bottom:8px;font-size:0.85rem;">SISTEMA DE PUNTOS</h3>
         <p style="font-size:0.85rem;opacity:0.8;line-height:1.5;">
           • Cada <strong>victoria</strong> suma <span style="color:var(--neon-green)">+50</span> puntos<br>
-          • Cada <strong>derrota</strong> resta <span style="color:#ff4466">-25</span> puntos<br><br>
+          • Cada <strong>derrota</strong> resta <span style="color:#ff4466">-25</span> puntos<br>
+          • <strong>Abandono:</strong> el que abandona <span style="color:#ff4466">-50</span> pts · el ganador <span style="color:var(--neon-green)">+25</span> pts<br><br>
           <strong>Rangos e Insignias:</strong>
         </p>
 
@@ -1952,16 +2030,32 @@
     <!-- COMBATE ACTIVO -->
     <div id="duel-arena" style="display:none;">
 
-      <!-- DECKS -->
+      <!-- TURNO + PRIORIDAD -->
+      <div class="duel-meta-bar">
+        <div class="duel-meta-box">
+          <div class="meta-label">TURNO</div>
+          <div class="meta-value" id="duel-turn-display">1</div>
+        </div>
+        <div class="duel-meta-box priority-box">
+          <div class="meta-label">PRIORIDAD</div>
+          <div class="meta-value" id="duel-priority-display">—</div>
+        </div>
+      </div>
+      <p id="duel-priority-hint" style="font-size:0.72rem; opacity:0.75; text-align:center; margin-bottom:12px; line-height:1.35;">
+        Quien tiene prioridad coloca el primer core y actúa primero en el turno.
+      </p>
+
+      <!-- DECKS (vida) -->
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
         <div class="panel" style="padding:12px; text-align:center; margin-bottom:0;">
           <div style="font-size:0.7rem; color:var(--neon-cyan); margin-bottom:4px;" id="my-name-label">TU DECK</div>
           <div id="my-deck" style="font-family:'Orbitron'; font-size:2rem; font-weight:bold;">50</div>
-          <div style="display:flex; gap:4px; justify-content:center; margin-top:8px;">
+          <div class="arena-stat-btns" style="margin-top:8px;">
             <button class="btn btn-sm btn-danger" onclick="syncUpdateDeck(-1)">-1</button>
             <button class="btn btn-sm btn-danger" onclick="syncUpdateDeck(-5)">-5</button>
             <button class="btn btn-sm" onclick="syncUpdateDeck(1)">+1</button>
           </div>
+          <div style="font-size:0.6rem; opacity:0.55; margin-top:6px;">Vida 0 sigue en juego · termina en -1</div>
         </div>
         <div class="panel" style="padding:12px; text-align:center; margin-bottom:0; border-color:var(--neon-magenta);">
           <div style="font-size:0.7rem; color:var(--neon-magenta); margin-bottom:4px;" id="opp-name-label">RIVAL</div>
@@ -1970,8 +2064,14 @@
         </div>
       </div>
 
-      <button id="btn-main-action" class="btn" style="margin-bottom:14px; font-weight:bold; background:linear-gradient(45deg,#ff9900,#ff0055);" onclick="handleMainActionButton()">
+      <button id="btn-main-action" class="btn" style="margin-bottom:10px; font-weight:bold; background:linear-gradient(45deg,#ff9900,#ff0055);" onclick="handleMainActionButton()">
         🎴 Robar Mano Inicial (-6)
+      </button>
+      <button id="btn-next-turn" class="btn" style="margin-bottom:10px; display:none;" onclick="advanceDuelTurn()">
+        ⏭ Pasar turno (rota prioridad)
+      </button>
+      <button class="btn btn-danger" style="margin-bottom:14px;" onclick="forfeitDuel()">
+        🏳️ Abandonar partida
       </button>
 
       <!-- BAKUGAN EN CENTRO -->
@@ -1980,13 +2080,12 @@
         <div id="arena-center-card" style="min-height:90px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
           <div style="opacity:0.5; font-size:0.85rem;">Seleccioná uno de tus Bakugan abajo</div>
         </div>
-        <!-- Contadores B-Power / Daño del seleccionado -->
         <div id="arena-stat-controls" style="display:none; margin-top:10px;">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <div>
               <div style="font-size:0.65rem; color:var(--neon-cyan);">B-POWER</div>
               <div id="arena-bpower" style="font-family:'Orbitron'; font-size:1.4rem;">0</div>
-              <div style="display:flex; gap:4px; justify-content:center; margin-top:4px;">
+              <div class="arena-stat-btns">
                 <button class="btn btn-sm btn-danger" onclick="syncUpdateStat('bpower', -100)">-100</button>
                 <button class="btn btn-sm btn-danger" onclick="syncUpdateStat('bpower', -50)">-50</button>
                 <button class="btn btn-sm" onclick="syncUpdateStat('bpower', 50)">+50</button>
@@ -1996,7 +2095,7 @@
             <div>
               <div style="font-size:0.65rem; color:var(--neon-magenta);">DAÑO</div>
               <div id="arena-damage" style="font-family:'Orbitron'; font-size:1.4rem;">0</div>
-              <div style="display:flex; gap:4px; justify-content:center; margin-top:4px;">
+              <div class="arena-stat-btns">
                 <button class="btn btn-sm btn-danger" onclick="syncUpdateStat('damage', -1)">-1</button>
                 <button class="btn btn-sm btn-danger" onclick="syncUpdateStat('damage', -2)">-2</button>
                 <button class="btn btn-sm" onclick="syncUpdateStat('damage', 1)">+1</button>
@@ -2007,13 +2106,14 @@
         </div>
       </div>
 
-      <!-- TUS 3 BAKUGAN -->
+      <!-- TUS 3 BAKUGAN (del deck activo) -->
       <div class="panel" style="margin-bottom:14px;">
-        <div style="font-family:'Orbitron'; font-size:0.7rem; color:var(--neon-cyan); margin-bottom:8px;">TU EQUIPO</div>
+        <div style="font-family:'Orbitron'; font-size:0.7rem; color:var(--neon-cyan); margin-bottom:4px;">TU EQUIPO</div>
+        <div id="my-active-deck-name" style="font-size:0.75rem; opacity:0.7; margin-bottom:8px;">Deck activo</div>
         <div id="my-bakugan-list" style="display:flex; flex-direction:column; gap:6px;"></div>
       </div>
 
-      <!-- RIVAL: Bakugan seleccionado (solo lectura) -->
+      <!-- RIVAL -->
       <div class="panel" style="border-color:var(--neon-magenta);">
         <div style="font-family:'Orbitron'; font-size:0.7rem; color:var(--neon-magenta); margin-bottom:8px;">BAKUGAN DEL RIVAL</div>
         <div id="opp-bakugan-display" style="font-size:0.85rem; opacity:0.7;">Esperando selección...</div>
@@ -2130,9 +2230,69 @@ function saveUserToCloud(user) {
 }
 
 function recalculatePoints(player) {
-  const pts = ((player.wins || 0) * 50) - ((player.losses || 0) * 25);
-  player.points = Math.max(0, pts);
+  // Puntos se actualizan al aplicar resultados; solo aseguramos valor no negativo
+  // y migraciones viejas sin points
+  if (player.points == null || player.points === undefined) {
+    player.points = Math.max(0, ((player.wins || 0) * 50) - ((player.losses || 0) * 25));
+  }
+  player.points = Math.max(0, player.points || 0);
 }
+
+function emptyBaku() {
+  return { name: '', bpower: '', damage: '', faction: '' };
+}
+
+function normalizeBakuList(list) {
+  const arr = Array.isArray(list) ? list.slice(0, 3) : [];
+  while (arr.length < 3) arr.push(emptyBaku());
+  return arr.map(b => {
+    if (!b || typeof b !== 'object') return emptyBaku();
+    return {
+      name: b.name || '',
+      bpower: b.bpower || '',
+      damage: b.damage || '',
+      faction: b.faction || ''
+    };
+  });
+}
+
+function ensurePlayerDecks(user) {
+  if (!user) return;
+  if (!Array.isArray(user.decks) || user.decks.length < 3) {
+    const legacy = normalizeBakuList(user.bakugan || [{}, {}, {}]);
+    user.decks = [
+      { name: 'Deck 1', bakugan: legacy },
+      { name: 'Deck 2', bakugan: [emptyBaku(), emptyBaku(), emptyBaku()] },
+      { name: 'Deck 3', bakugan: [emptyBaku(), emptyBaku(), emptyBaku()] }
+    ];
+  } else {
+    user.decks = user.decks.slice(0, 3).map((d, i) => ({
+      name: (d && d.name) ? d.name : `Deck ${i + 1}`,
+      bakugan: normalizeBakuList(d && d.bakugan)
+    }));
+    while (user.decks.length < 3) {
+      user.decks.push({ name: `Deck ${user.decks.length + 1}`, bakugan: [emptyBaku(), emptyBaku(), emptyBaku()] });
+    }
+  }
+  if (user.activeDeck == null || user.activeDeck < 0 || user.activeDeck > 2) {
+    user.activeDeck = 0;
+  }
+  // Compat: bakugan = deck activo
+  user.bakugan = user.decks[user.activeDeck].bakugan;
+}
+
+function getActiveBakugan(user) {
+  ensurePlayerDecks(user);
+  return user.decks[user.activeDeck].bakugan;
+}
+
+function getActiveDeckName(user) {
+  ensurePlayerDecks(user);
+  return user.decks[user.activeDeck].name || `Deck ${user.activeDeck + 1}`;
+}
+
+let profileDeckIndex = 0;
+let profileDecksCache = null;
 
 function getRank(points) {
   if (points >= 3500) return { name: 'Rey de Batallas', cls: 'rank-rey', badge: 'Insignea_rey_07.png' };
@@ -2619,12 +2779,84 @@ function selectBakuganFaction(bakuIndex, factionName, element) {
   element.classList.add('selected');
 }
 
+function readBakuganEditors() {
+  return [1, 2, 3].map(i => ({
+    name: document.getElementById(`baku${i}-name`).value.trim(),
+    bpower: document.getElementById(`baku${i}-bpower`).value,
+    damage: document.getElementById(`baku${i}-damage`).value,
+    faction: document.getElementById(`baku${i}-faction`).value
+  }));
+}
+
+function fillBakuganEditors(bakuList) {
+  const list = normalizeBakuList(bakuList);
+  [1, 2, 3].forEach(i => {
+    const item = list[i - 1] || emptyBaku();
+    document.getElementById(`baku${i}-name`).value = item.name || '';
+    document.getElementById(`baku${i}-bpower`).value = item.bpower || '';
+    document.getElementById(`baku${i}-damage`).value = item.damage || '';
+    const faction = item.faction || '';
+    document.getElementById(`baku${i}-faction`).value = faction;
+    const container = document.querySelector(`.baku-faction-selector[data-baku-index="${i}"]`);
+    if (container) {
+      container.querySelectorAll('.faction-opt').forEach(img => {
+        img.classList.toggle('selected', img.getAttribute('data-faction') === faction);
+      });
+    }
+  });
+}
+
+function persistCurrentProfileDeckEditors() {
+  if (!profileDecksCache) return;
+  const nameInput = document.getElementById('deck-name-input');
+  profileDecksCache[profileDeckIndex] = {
+    name: (nameInput && nameInput.value.trim()) || `Deck ${profileDeckIndex + 1}`,
+    bakugan: readBakuganEditors()
+  };
+}
+
+function switchProfileDeck(index) {
+  persistCurrentProfileDeckEditors();
+  profileDeckIndex = index;
+  document.querySelectorAll('.deck-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.deck, 10) === index);
+  });
+  const deck = profileDecksCache[index] || { name: `Deck ${index + 1}`, bakugan: [emptyBaku(), emptyBaku(), emptyBaku()] };
+  const nameInput = document.getElementById('deck-name-input');
+  if (nameInput) nameInput.value = deck.name || `Deck ${index + 1}`;
+  fillBakuganEditors(deck.bakugan);
+  updateActiveDeckLabel();
+}
+
+function updateActiveDeckLabel() {
+  const user = players.find(p => p.id === currentUserId);
+  const label = document.getElementById('active-deck-label');
+  if (!label) return;
+  const active = user && user.activeDeck != null ? user.activeDeck : 0;
+  const name = (profileDecksCache && profileDecksCache[active] && profileDecksCache[active].name) || `Deck ${active + 1}`;
+  label.textContent = `Deck activo para duelos: ${name}`;
+  const btn = document.getElementById('btn-set-active-deck');
+  if (btn) {
+    btn.textContent = profileDeckIndex === active ? '⭐ Este es el deck activo' : '⭐ Usar este deck en duelo';
+  }
+}
+
+function setActiveDeckFromProfile() {
+  const user = players.find(p => p.id === currentUserId);
+  if (!user) return;
+  persistCurrentProfileDeckEditors();
+  user.activeDeck = profileDeckIndex;
+  updateActiveDeckLabel();
+  alert(`Deck activo: ${profileDecksCache[profileDeckIndex].name || ('Deck ' + (profileDeckIndex + 1))}`);
+}
+
 function renderProfile() {
   let user = players.find(p => p.id === currentUserId);
   if (!user) return;
 
+  ensurePlayerDecks(user);
   selectedAvatarPath = user.avatar || AVATARS[0];
-  
+
   const profileAvatar = document.getElementById('profile-avatar');
   if (profileAvatar) profileAvatar.src = selectedAvatarPath;
 
@@ -2640,27 +2872,13 @@ function renderProfile() {
     });
   }
 
-  const bakuList = user.bakugan || [{}, {}, {}];
-  [1, 2, 3].forEach(i => {
-    const item = typeof bakuList[i - 1] === 'object' ? bakuList[i - 1] : { name: bakuList[i - 1] || '' };
-    document.getElementById(`baku${i}-name`).value = item.name || '';
-    document.getElementById(`baku${i}-bpower`).value = item.bpower || '';
-    document.getElementById(`baku${i}-damage`).value = item.damage || '';
-    
-    const faction = item.faction || '';
-    document.getElementById(`baku${i}-faction`).value = faction;
-    
-    const container = document.querySelector(`.baku-faction-selector[data-baku-index="${i}"]`);
-    if (container) {
-      container.querySelectorAll('.faction-opt').forEach(img => {
-        if (img.getAttribute('data-faction') === faction) {
-          img.classList.add('selected');
-        } else {
-          img.classList.remove('selected');
-        }
-      });
-    }
-  });
+  // Cache local de decks para editar sin perder cambios al cambiar pestaña
+  profileDecksCache = user.decks.map(d => ({
+    name: d.name || 'Deck',
+    bakugan: normalizeBakuList(d.bakugan)
+  }));
+  profileDeckIndex = user.activeDeck || 0;
+  switchProfileDeck(profileDeckIndex);
 
   recalculatePoints(user);
   const r = getRank(user.points || 0);
@@ -2669,7 +2887,7 @@ function renderProfile() {
   document.getElementById('stat-wins').textContent = user.wins || 0;
   document.getElementById('stat-losses').textContent = user.losses || 0;
   document.getElementById('stat-rank').textContent = r.name.toUpperCase();
-  
+
   const badgeImg = document.getElementById('stat-rank-badge');
   if (badgeImg) badgeImg.src = r.badge;
 }
@@ -2698,12 +2916,14 @@ async function saveProfile() {
   user.factions = Array.from(sel.selectedOptions).map(o => o.value);
   user.avatar = selectedAvatarPath;
 
-  user.bakugan = [1, 2, 3].map(i => ({
-    name: document.getElementById(`baku${i}-name`).value.trim(),
-    bpower: document.getElementById(`baku${i}-bpower`).value,
-    damage: document.getElementById(`baku${i}-damage`).value,
-    faction: document.getElementById(`baku${i}-faction`).value
+  persistCurrentProfileDeckEditors();
+  ensurePlayerDecks(user);
+  user.decks = profileDecksCache.map((d, i) => ({
+    name: d.name || `Deck ${i + 1}`,
+    bakugan: normalizeBakuList(d.bakugan)
   }));
+  if (user.activeDeck == null) user.activeDeck = 0;
+  user.bakugan = user.decks[user.activeDeck].bakugan;
 
   const payload = { ...user };
   delete payload.isAdmin;
@@ -2782,18 +3002,25 @@ function openPlayerModal(player) {
   const bakuContainer = document.getElementById('modal-bakugan-list');
   bakuContainer.innerHTML = '';
 
-  const bakuList = player.bakugan || [];
-  if (bakuList.length === 0 || (!bakuList[0].name && !bakuList[1].name && !bakuList[2].name)) {
+  ensurePlayerDecks(player);
+  const activeName = getActiveDeckName(player);
+  const bakuList = getActiveBakugan(player);
+  const hasAny = bakuList.some(b => b && (b.name || b.bpower || b.damage));
+  if (!hasAny) {
     bakuContainer.innerHTML = `<div style="font-size:0.75rem; opacity:0.6;">Sin Bakugan registrados</div>`;
   } else {
+    const title = document.createElement('div');
+    title.style.cssText = 'font-size:0.7rem; opacity:0.7; margin-bottom:6px;';
+    title.textContent = 'Deck activo: ' + activeName;
+    bakuContainer.appendChild(title);
     bakuList.forEach((b, idx) => {
       if (b && (b.name || b.bpower || b.damage)) {
         const item = document.createElement('div');
         item.className = 'modal-bakugan-item';
         item.innerHTML = `
-          <strong>#${idx + 1} ${b.name || 'Desconocido'}</strong> 
-          ${b.faction ? `(${b.faction})` : ''} 
-          <br> 
+          <strong>#${idx + 1} ${b.name || 'Desconocido'}</strong>
+          ${b.faction ? `(${b.faction})` : ''}
+          <br>
           <span style="font-size:0.75rem; color:var(--neon-cyan);">⚡ ${b.bpower || 0} Gs | 💥 ${b.damage || 0} DMG</span>
         `;
         bakuContainer.appendChild(item);
@@ -2883,7 +3110,8 @@ async function adjustStats(userId, winsToAdd, lossesToAdd) {
   if (!p) return;
   p.wins = (p.wins || 0) + winsToAdd;
   p.losses = (p.losses || 0) + lossesToAdd;
-  recalculatePoints(p);
+  // Admin: victoria normal +50 / derrota normal -25
+  p.points = Math.max(0, (p.points || 0) + (winsToAdd * 50) - (lossesToAdd * 25));
   await saveUserToCloud(p);
 }
 
@@ -3351,12 +3579,14 @@ async function createDuelRoom() {
     return;
   }
 
+  ensurePlayerDecks(me);
   const code = 'SALA-' + Math.floor(1000 + Math.random() * 9000);
   const room = {
     hostId: currentUserId,
     hostNick: me.nick || 'Brawler',
     hostAvatar: me.avatar || AVATARS[0],
-    hostBakugan: me.bakugan || [{}, {}, {}],
+    hostBakugan: getActiveBakugan(me),
+    hostDeckName: getActiveDeckName(me),
     hostDeck: 50,
     hostSelected: null,
     hostBpower: 0,
@@ -3365,12 +3595,15 @@ async function createDuelRoom() {
     guestNick: null,
     guestAvatar: null,
     guestBakugan: [],
+    guestDeckName: '',
     guestDeck: 50,
     guestSelected: null,
     guestBpower: 0,
     guestDamage: 0,
     status: 'waiting',
     initialDrawDone: false,
+    turn: 1,
+    priorityRole: null, // 'host' | 'guest' — se define 50/50 al conectar ambos
     createdAt: Date.now()
   };
 
@@ -3439,13 +3672,18 @@ async function joinDuelRoom() {
       return;
     }
 
-    // Unirse como guest
+    // Unirse como guest + prioridad 50/50 al inicio
+    ensurePlayerDecks(me);
+    const priorityRole = Math.random() < 0.5 ? 'host' : 'guest';
     await ref.update({
       guestId: currentUserId,
       guestNick: me.nick || 'Brawler',
       guestAvatar: me.avatar || AVATARS[0],
-      guestBakugan: me.bakugan || [{}, {}, {}],
-      status: 'ready'
+      guestBakugan: getActiveBakugan(me),
+      guestDeckName: getActiveDeckName(me),
+      status: 'ready',
+      priorityRole: priorityRole,
+      turn: 1
     });
 
     activeRoomCode = code;
@@ -3493,7 +3731,12 @@ function renderDuelUI(d) {
     return;
   }
 
-  // Ambos conectados → arena
+  // Si falta prioridad (salas viejas), host la asigna 50/50
+  if (!d.priorityRole && duelRole === 'host' && activeRoomCode) {
+    const pr = Math.random() < 0.5 ? 'host' : 'guest';
+    db.collection('duels').doc(activeRoomCode).update({ priorityRole: pr, turn: d.turn || 1 }).catch(() => {});
+  }
+
   document.getElementById('duel-waiting').style.display = 'none';
   document.getElementById('duel-setup').style.display = 'none';
   document.getElementById('duel-arena').style.display = 'block';
@@ -3504,6 +3747,7 @@ function renderDuelUI(d) {
   const myNick = iAmHost ? d.hostNick : d.guestNick;
   const oppNick = iAmHost ? d.guestNick : d.hostNick;
   const myBaku = iAmHost ? (d.hostBakugan || []) : (d.guestBakugan || []);
+  const myDeckName = iAmHost ? (d.hostDeckName || 'Deck activo') : (d.guestDeckName || 'Deck activo');
   const mySelected = iAmHost ? d.hostSelected : d.guestSelected;
   const myBpower = iAmHost ? d.hostBpower : d.guestBpower;
   const myDamage = iAmHost ? d.hostDamage : d.guestDamage;
@@ -3512,22 +3756,46 @@ function renderDuelUI(d) {
   const oppBpower = iAmHost ? d.guestBpower : d.hostBpower;
   const oppDamage = iAmHost ? d.guestDamage : d.hostDamage;
 
-  document.getElementById('my-name-label').textContent = (myNick || 'TÚ').toUpperCase() + ' · DECK';
-  document.getElementById('opp-name-label').textContent = (oppNick || 'RIVAL').toUpperCase() + ' · DECK';
-  document.getElementById('my-deck').textContent = myDeck ?? 50;
-  document.getElementById('opp-deck').textContent = oppDeck ?? 50;
+  // Turno y prioridad
+  const turnEl = document.getElementById('duel-turn-display');
+  if (turnEl) turnEl.textContent = String(d.turn || 1);
+  const prioEl = document.getElementById('duel-priority-display');
+  if (prioEl) {
+    if (!d.priorityRole) {
+      prioEl.textContent = 'Sorteando...';
+    } else {
+      const prioNick = d.priorityRole === 'host' ? (d.hostNick || 'Host') : (d.guestNick || 'Guest');
+      const isMine = d.priorityRole === duelRole;
+      prioEl.textContent = isMine ? `VOS (${prioNick})` : prioNick;
+    }
+  }
 
-  // Botón mano inicial
+  document.getElementById('my-name-label').textContent = (myNick || 'TÚ').toUpperCase() + ' · VIDA';
+  document.getElementById('opp-name-label').textContent = (oppNick || 'RIVAL').toUpperCase() + ' · VIDA';
+  const myDeckEl = document.getElementById('my-deck');
+  const oppDeckEl = document.getElementById('opp-deck');
+  myDeckEl.textContent = myDeck ?? 50;
+  oppDeckEl.textContent = oppDeck ?? 50;
+  myDeckEl.style.color = (myDeck ?? 50) <= 0 ? '#ff6688' : 'var(--neon-cyan)';
+  oppDeckEl.style.color = (oppDeck ?? 50) <= 0 ? '#ff6688' : '#fff';
+
+  const deckNameEl = document.getElementById('my-active-deck-name');
+  if (deckNameEl) deckNameEl.textContent = 'Deck: ' + myDeckName;
+
+  // Botón mano inicial / robar
   const btn = document.getElementById('btn-main-action');
+  const nextTurnBtn = document.getElementById('btn-next-turn');
   if (d.initialDrawDone) {
-    btn.textContent = '🔄 Nuevo Turno (-1 a ambos)';
+    btn.textContent = '🔄 Robar carta (-1 a ambos)';
     btn.style.background = 'linear-gradient(45deg, #00f0ff, #0055ff)';
+    if (nextTurnBtn) nextTurnBtn.style.display = 'block';
   } else {
     btn.textContent = '🎴 Robar Mano Inicial (-6)';
     btn.style.background = 'linear-gradient(45deg, #ff9900, #ff0055)';
+    if (nextTurnBtn) nextTurnBtn.style.display = 'none';
   }
 
-  // Lista de mis Bakugan
+  // Lista de mis Bakugan (del deck activo cargado en la sala)
   const list = document.getElementById('my-bakugan-list');
   list.innerHTML = '';
   [0, 1, 2].forEach((i) => {
@@ -3549,7 +3817,6 @@ function renderDuelUI(d) {
     list.appendChild(div);
   });
 
-  // Centro: mi Bakugan seleccionado
   const center = document.getElementById('arena-center-card');
   const controls = document.getElementById('arena-stat-controls');
   if (mySelected !== null && mySelected !== undefined && myBaku[mySelected]) {
@@ -3567,7 +3834,6 @@ function renderDuelUI(d) {
     controls.style.display = 'none';
   }
 
-  // Rival seleccionado (solo lectura)
   const oppBox = document.getElementById('opp-bakugan-display');
   if (oppSelected !== null && oppSelected !== undefined && oppBaku[oppSelected]) {
     const b = oppBaku[oppSelected];
@@ -3582,16 +3848,18 @@ function renderDuelUI(d) {
     oppBox.innerHTML = `<span style="opacity:0.6;">Esperando selección del rival...</span>`;
   }
 
-  // Fin de partida por deck 0
-  if ((myDeck <= 0 || oppDeck <= 0) && d.status !== 'ended') {
-    handleDuelEnd(myDeck <= 0 ? 'loss' : 'win');
+  // Fin de partida: vida en -1 o menos (0 todavía juega)
+  if ((myDeck < 0 || oppDeck < 0) && d.status !== 'ended') {
+    handleDuelEnd(myDeck < 0 ? 'loss' : 'win');
   }
 }
 
 async function selectMyBakugan(index) {
-  if (!activeRoomCode || !duelRole) return;
-  const me = getMyPlayer();
-  const baku = (me && me.bakugan && me.bakugan[index]) ? me.bakugan[index] : {};
+  if (!activeRoomCode || !duelRole || !currentDuelData) return;
+  const myBaku = duelRole === 'host'
+    ? (currentDuelData.hostBakugan || [])
+    : (currentDuelData.guestBakugan || []);
+  const baku = myBaku[index] || {};
   const baseB = parseInt(baku.bpower, 10) || 0;
   const baseD = parseInt(baku.damage, 10) || 0;
 
@@ -3606,7 +3874,8 @@ async function syncUpdateDeck(delta) {
   if (!activeRoomCode || !duelRole || !currentDuelData) return;
   const field = duelRole === 'host' ? 'hostDeck' : 'guestDeck';
   const current = currentDuelData[field] ?? 50;
-  const next = Math.max(0, current + delta);
+  // Permitir 0 y negativos (la partida termina en -1)
+  const next = current + delta;
   await db.collection('duels').doc(activeRoomCode).update({ [field]: next });
 }
 
@@ -3626,33 +3895,83 @@ async function handleMainActionButton() {
 
   if (!d.initialDrawDone) {
     await db.collection('duels').doc(activeRoomCode).update({
-      hostDeck: Math.max(0, (d.hostDeck ?? 50) - 6),
-      guestDeck: Math.max(0, (d.guestDeck ?? 50) - 6),
+      hostDeck: (d.hostDeck ?? 50) - 6,
+      guestDeck: (d.guestDeck ?? 50) - 6,
       initialDrawDone: true
     });
   } else {
     await db.collection('duels').doc(activeRoomCode).update({
-      hostDeck: Math.max(0, (d.hostDeck ?? 50) - 1),
-      guestDeck: Math.max(0, (d.guestDeck ?? 50) - 1)
+      hostDeck: (d.hostDeck ?? 50) - 1,
+      guestDeck: (d.guestDeck ?? 50) - 1
     });
   }
 }
 
+async function advanceDuelTurn() {
+  if (!activeRoomCode || !currentDuelData) return;
+  const d = currentDuelData;
+  const nextTurn = (d.turn || 1) + 1;
+  const nextPrio = d.priorityRole === 'host' ? 'guest' : 'host';
+  await db.collection('duels').doc(activeRoomCode).update({
+    turn: nextTurn,
+    priorityRole: nextPrio
+  });
+}
+
+async function forfeitDuel() {
+  if (!activeRoomCode || !currentDuelData || currentDuelData.status === 'ended') return;
+  if (!confirm('¿Abandonar la partida?\n\n• Vos: -50 puntos\n• Rival: +25 puntos')) return;
+  await handleDuelEnd('forfeit_loss');
+}
+
+async function applyMatchResult(player, kind) {
+  if (!player) return;
+  if (kind === 'win') {
+    player.wins = (player.wins || 0) + 1;
+    player.points = (player.points || 0) + 50;
+  } else if (kind === 'loss') {
+    player.losses = (player.losses || 0) + 1;
+    player.points = Math.max(0, (player.points || 0) - 25);
+  } else if (kind === 'forfeit_win') {
+    player.wins = (player.wins || 0) + 1;
+    player.points = (player.points || 0) + 25;
+  } else if (kind === 'forfeit_loss') {
+    player.losses = (player.losses || 0) + 1;
+    player.points = Math.max(0, (player.points || 0) - 50);
+  }
+  await saveUserToCloud(player);
+}
+
 async function handleDuelEnd(result) {
+  // result: 'win' | 'loss' | 'forfeit_loss'
   if (!activeRoomCode || !currentDuelData || currentDuelData.status === 'ended') return;
   try {
-    await db.collection('duels').doc(activeRoomCode).update({ status: 'ended' });
+    await db.collection('duels').doc(activeRoomCode).update({
+      status: 'ended',
+      endResult: result,
+      endedBy: currentUserId
+    });
   } catch (e) {}
 
+  const d = currentDuelData;
   const me = getMyPlayer();
-  if (me) {
-    if (result === 'win') me.wins = (me.wins || 0) + 1;
-    else me.losses = (me.losses || 0) + 1;
-    recalculatePoints(me);
-    await saveUserToCloud(me);
+  const oppId = duelRole === 'host' ? d.guestId : d.hostId;
+  const opp = players.find(p => p.id === oppId);
+
+  // Cada cliente aplica su propio resultado (evita doble conteo).
+  // En abandono, el que abandona también acredita la victoria especial al rival.
+  if (result === 'forfeit_loss') {
+    if (me) await applyMatchResult(me, 'forfeit_loss');
+    if (opp) await applyMatchResult(opp, 'forfeit_win');
+    alert('🏳️ Abandonaste. -50 pts. El rival gana +25 pts.');
+  } else if (result === 'win') {
+    if (me) await applyMatchResult(me, 'win');
+    alert('🏆 ¡Victoria! +50 pts.');
+  } else {
+    if (me) await applyMatchResult(me, 'loss');
+    alert('💥 Derrota. -25 pts.');
   }
 
-  alert(result === 'win' ? '🏆 ¡Victoria! Resultado guardado.' : '💥 Derrota. Resultado guardado.');
   closeDuelScreen();
 }
 
