@@ -2258,7 +2258,14 @@ function normalizeBakuList(list) {
 
 function ensurePlayerDecks(user) {
   if (!user) return;
-  if (!Array.isArray(user.decks) || user.decks.length < 3) {
+
+  // Firestore a veces devuelve arrays como objetos {0:...,1:...}
+  let rawDecks = user.decks;
+  if (rawDecks && !Array.isArray(rawDecks) && typeof rawDecks === 'object') {
+    rawDecks = Object.keys(rawDecks).sort((a, b) => Number(a) - Number(b)).map(k => rawDecks[k]);
+  }
+
+  if (!Array.isArray(rawDecks) || rawDecks.length === 0) {
     const legacy = normalizeBakuList(user.bakugan || [{}, {}, {}]);
     user.decks = [
       { name: 'Deck 1', bakugan: legacy },
@@ -2266,7 +2273,7 @@ function ensurePlayerDecks(user) {
       { name: 'Deck 3', bakugan: [emptyBaku(), emptyBaku(), emptyBaku()] }
     ];
   } else {
-    user.decks = user.decks.slice(0, 3).map((d, i) => ({
+    user.decks = rawDecks.slice(0, 3).map((d, i) => ({
       name: (d && d.name) ? d.name : `Deck ${i + 1}`,
       bakugan: normalizeBakuList(d && d.bakugan)
     }));
@@ -2274,9 +2281,19 @@ function ensurePlayerDecks(user) {
       user.decks.push({ name: `Deck ${user.decks.length + 1}`, bakugan: [emptyBaku(), emptyBaku(), emptyBaku()] });
     }
   }
+
   if (user.activeDeck == null || user.activeDeck < 0 || user.activeDeck > 2) {
     user.activeDeck = 0;
   }
+
+  // Si el deck activo está vacío y hay bakugan legacy, recuperarlos
+  const active = user.decks[user.activeDeck];
+  const activeEmpty = !active.bakugan.some(b => b && (b.name || b.bpower || b.damage));
+  const legacy = normalizeBakuList(user.bakugan || []);
+  if (activeEmpty && legacy.some(b => b && (b.name || b.bpower || b.damage))) {
+    user.decks[user.activeDeck].bakugan = legacy;
+  }
+
   // Compat: bakugan = deck activo
   user.bakugan = user.decks[user.activeDeck].bakugan;
 }
@@ -2815,9 +2832,17 @@ function persistCurrentProfileDeckEditors() {
   };
 }
 
-function switchProfileDeck(index) {
-  persistCurrentProfileDeckEditors();
+function switchProfileDeck(index, skipPersist) {
+  // Al cargar desde la nube NO debemos guardar el formulario vacío encima del cache
+  if (!skipPersist) persistCurrentProfileDeckEditors();
   profileDeckIndex = index;
+  if (!profileDecksCache) {
+    profileDecksCache = [
+      { name: 'Deck 1', bakugan: [emptyBaku(), emptyBaku(), emptyBaku()] },
+      { name: 'Deck 2', bakugan: [emptyBaku(), emptyBaku(), emptyBaku()] },
+      { name: 'Deck 3', bakugan: [emptyBaku(), emptyBaku(), emptyBaku()] }
+    ];
+  }
   document.querySelectorAll('.deck-tab-btn').forEach(btn => {
     btn.classList.toggle('active', parseInt(btn.dataset.deck, 10) === index);
   });
@@ -2873,12 +2898,30 @@ function renderProfile() {
   }
 
   // Cache local de decks para editar sin perder cambios al cambiar pestaña
-  profileDecksCache = user.decks.map(d => ({
-    name: d.name || 'Deck',
-    bakugan: normalizeBakuList(d.bakugan)
+  // Deep copy para no mutar el objeto de players
+  profileDecksCache = (user.decks || []).map((d, i) => ({
+    name: (d && d.name) ? d.name : `Deck ${i + 1}`,
+    bakugan: normalizeBakuList(d && d.bakugan)
   }));
-  profileDeckIndex = user.activeDeck || 0;
-  switchProfileDeck(profileDeckIndex);
+  while (profileDecksCache.length < 3) {
+    profileDecksCache.push({
+      name: `Deck ${profileDecksCache.length + 1}`,
+      bakugan: [emptyBaku(), emptyBaku(), emptyBaku()]
+    });
+  }
+  // Si el deck activo está vacío pero existe user.bakugan legacy con datos, recuperarlos
+  const activeIdx = (user.activeDeck != null && user.activeDeck >= 0 && user.activeDeck <= 2) ? user.activeDeck : 0;
+  const activeEmpty = !profileDecksCache[activeIdx].bakugan.some(b => b && (b.name || b.bpower || b.damage));
+  const legacy = normalizeBakuList(user.bakugan || []);
+  const legacyHasData = legacy.some(b => b && (b.name || b.bpower || b.damage));
+  if (activeEmpty && legacyHasData) {
+    profileDecksCache[activeIdx].bakugan = legacy;
+    if (!profileDecksCache[activeIdx].name || profileDecksCache[activeIdx].name === `Deck ${activeIdx + 1}`) {
+      // mantener nombre si ya había uno en decks
+    }
+  }
+  profileDeckIndex = activeIdx;
+  switchProfileDeck(activeIdx, true); // true = no pisar cache con inputs vacíos
 
   recalculatePoints(user);
   const r = getRank(user.points || 0);
