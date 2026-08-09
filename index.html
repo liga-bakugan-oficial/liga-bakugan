@@ -1942,7 +1942,7 @@
 
       <div class="panel panel-admin" style="text-align:center;">
         <h3 style="font-family:'Orbitron';color:#ff0055;margin-bottom:8px;font-size:0.85rem;">REINICIO DE TEMPORADA</h3>
-        <p style="font-size:0.8rem; opacity:0.75; margin-bottom:12px;">Esta acción pondrá a <strong>0</strong> las victorias, derrotas y puntos de TODOS los jugadores registrados.</p>
+        <p style="font-size:0.8rem; opacity:0.75; margin-bottom:12px;">Pone a <strong>0</strong> victorias, derrotas y puntos de <strong>todos</strong> los jugadores (lee directo de la nube). También limpia salas de duelo viejas. No borra perfiles, decks ni cuentas.</p>
         <button class="btn btn-danger" onclick="resetSeason()">⚠️ REINICIAR PUNTOS DE LA LIGA</button>
       </div>
     </div>
@@ -3126,17 +3126,66 @@ async function deletePlayer(userId) {
 }
 
 async function resetSeason() {
-  if (confirm('⚠️ ATENCIÓN: ¿Estás seguro de reiniciar todos los puntos de la temporada a 0?')) {
-    const batch = db.batch();
+  if (!confirm('⚠️ ATENCIÓN: Esto pondrá a 0 las victorias, derrotas y puntos de TODOS los jugadores.\n\n¿Continuar?')) {
+    return;
+  }
+
+  try {
+    // Leer siempre desde la nube (no solo el array local)
+    const snap = await db.collection('players').get();
+    if (snap.empty) {
+      alert('No hay jugadores registrados para reiniciar.');
+      return;
+    }
+
+    const docs = [];
+    snap.forEach(doc => docs.push(doc));
+
+    // Firestore batch: máx 500 ops. Procesamos en bloques.
+    const CHUNK = 400;
+    let updated = 0;
+    for (let i = 0; i < docs.length; i += CHUNK) {
+      const batch = db.batch();
+      const slice = docs.slice(i, i + CHUNK);
+      slice.forEach(doc => {
+        batch.set(doc.ref, {
+          wins: 0,
+          losses: 0,
+          points: 0
+        }, { merge: true });
+      });
+      await batch.commit();
+      updated += slice.length;
+    }
+
+    // Limpiar salas de duelo viejas (opcional pero recomendable al reiniciar liga)
+    try {
+      const duelSnap = await db.collection('duels').get();
+      const duelDocs = [];
+      duelSnap.forEach(d => duelDocs.push(d));
+      for (let i = 0; i < duelDocs.length; i += CHUNK) {
+        const batch = db.batch();
+        duelDocs.slice(i, i + CHUNK).forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      }
+    } catch (duelErr) {
+      console.warn('No se pudieron borrar todas las salas de duelo:', duelErr);
+    }
+
+    // Actualizar array local al instante
     players.forEach(p => {
       p.wins = 0;
       p.losses = 0;
       p.points = 0;
-      const ref = db.collection("players").doc(p.id);
-      batch.update(ref, { wins: 0, losses: 0, points: 0 });
     });
-    await batch.commit();
-    alert('¡Temporada reiniciada con éxito!');
+    renderRanking();
+    renderAdminPanel();
+    if (currentUserId) renderProfile();
+
+    alert(`✅ Temporada reiniciada.\nJugadores actualizados: ${updated}\nVictorias, derrotas y puntos en 0.`);
+  } catch (e) {
+    console.error(e);
+    alert('Error al reiniciar la temporada: ' + (e.message || e));
   }
 }
 
