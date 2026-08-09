@@ -310,6 +310,34 @@
     box-shadow: 0 0 12px rgba(0,240,255,0.25);
   }
 
+  /* Mostrar / ocultar contraseña */
+  .password-field {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .password-field input {
+    margin-bottom: 0;
+    padding-right: 44px;
+  }
+  .pw-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--neon-cyan);
+    font-size: 1.15rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    line-height: 1;
+    opacity: 0.75;
+    z-index: 2;
+  }
+  .pw-toggle:hover {
+    opacity: 1;
+  }
+
   .btn {
     display: inline-block;
     width: 100%;
@@ -1132,9 +1160,28 @@
       <label style="text-align:left;">Nick / Email / Teléfono</label>
       <input type="text" id="login-identifier" placeholder="Tu nick, email o teléfono..." autocomplete="username" />
       <label style="text-align:left;">Contraseña</label>
-      <input type="password" id="login-password" placeholder="Tu contraseña..." autocomplete="current-password" />
+      <div class="password-field">
+        <input type="password" id="login-password" placeholder="Tu contraseña..." autocomplete="current-password" />
+        <button type="button" class="pw-toggle" onclick="togglePasswordVisibility('login-password', this)" title="Mostrar/ocultar contraseña" aria-label="Mostrar contraseña">👁</button>
+      </div>
       <button class="btn" onclick="doLogin()" style="margin-top:4px;">ENTRAR A LA LIGA</button>
+      <p style="text-align:center; margin-top:12px;">
+        <a href="#" onclick="showAuthForm('forgot'); return false;" style="color:var(--neon-cyan); font-size:0.8rem; text-decoration:none; letter-spacing:0.5px;">¿Olvidaste tu contraseña?</a>
+      </p>
       <p id="login-error" style="color:#ff4477; font-size:0.8rem; margin-top:8px; display:none;"></p>
+    </div>
+
+    <!-- FORMULARIO RECUPERAR CONTRASEÑA -->
+    <div id="form-forgot" style="display:none;">
+      <p style="font-size:0.85rem; opacity:0.85; margin-bottom:12px; line-height:1.4; text-align:left;">
+        Ingresá tu <strong>Nick, Email o Teléfono</strong>. Te enviaremos un enlace a tu correo para crear una nueva contraseña.
+      </p>
+      <label style="text-align:left;">Nick / Email / Teléfono</label>
+      <input type="text" id="forgot-identifier" placeholder="Tu nick, email o teléfono..." autocomplete="username" />
+      <button class="btn" onclick="doForgotPassword()" style="margin-top:4px;">📧 ENVIAR ENLACE DE RECUPERACIÓN</button>
+      <button class="btn btn-sm" onclick="showAuthForm('login')" style="margin-top:10px; width:100%; background:transparent; border-color:rgba(0,240,255,0.35);">← Volver al login</button>
+      <p id="forgot-error" style="color:#ff4477; font-size:0.8rem; margin-top:8px; display:none;"></p>
+      <p id="forgot-success" style="color:var(--neon-green); font-size:0.8rem; margin-top:8px; display:none;"></p>
     </div>
 
     <!-- FORMULARIO REGISTRO -->
@@ -1146,9 +1193,15 @@
       <label style="text-align:left;">Teléfono (opcional)</label>
       <input type="tel" id="reg-phone" placeholder="+54 9 11 ..." autocomplete="tel" />
       <label style="text-align:left;">Contraseña (mín. 6 caracteres)</label>
-      <input type="password" id="reg-password" placeholder="Creá tu contraseña..." autocomplete="new-password" />
+      <div class="password-field">
+        <input type="password" id="reg-password" placeholder="Creá tu contraseña..." autocomplete="new-password" />
+        <button type="button" class="pw-toggle" onclick="togglePasswordVisibility('reg-password', this)" title="Mostrar/ocultar contraseña" aria-label="Mostrar contraseña">👁</button>
+      </div>
       <label style="text-align:left;">Repetir Contraseña</label>
-      <input type="password" id="reg-password2" placeholder="Repetí la contraseña..." autocomplete="new-password" />
+      <div class="password-field">
+        <input type="password" id="reg-password2" placeholder="Repetí la contraseña..." autocomplete="new-password" />
+        <button type="button" class="pw-toggle" onclick="togglePasswordVisibility('reg-password2', this)" title="Mostrar/ocultar contraseña" aria-label="Mostrar contraseña">👁</button>
+      </div>
       <button class="btn" onclick="doRegister()" style="margin-top:4px;">CREAR CUENTA</button>
       <p id="register-error" style="color:#ff4477; font-size:0.8rem; margin-top:8px; display:none;"></p>
     </div>
@@ -1165,7 +1218,6 @@
       <input type="range" id="audio-volume" min="0" max="100" value="40" oninput="setMusicVolume(this.value)" />
       <button class="btn btn-sm" id="audio-mute-btn" onclick="toggleMute()">🔇 Silenciar</button>
     </div>
-    <button class="admin-toggle-btn" onclick="promptAdminAccess()">⚙️ ADMIN</button>
     <div class="logo-title">
       <img src="LOGO-BAKUGAN.png" alt="Bakugan" class="logo-img" onerror="this.style.display='none'">
       <div>
@@ -1887,8 +1939,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-const ADMIN_PIN = '4170';
-
 const AVATARS = [
   'dragonoid_diamante_icon.jpg',
   'Cyndeous_sworld_icon.jpg',
@@ -1907,7 +1957,13 @@ const AVATARS = [
   'darkus_krakelios_ultra_by_themrtusky.png',
   'aurelus_leonidas_by_themrtusky.png',
   'darkus_pyrus_tretorous_dragonoid_by_themrtusky.png',
-  'darkus_platinum_griswing_by_themrtusky.png'
+  'darkus_platinum_griswing_by_themrtusky.png',
+  'luphiteon_icon.jpg',
+  'artuliam_icon.jpg',
+  'haos_Fenneca_core_by_themrtusky.png',
+  '39 sin título_20260710090235.png',
+  'aurelus_auratoa_core_by_themrtusky.png',
+  '39 sin título_20260710085756.png'
 ];
 
 const GUIDE_POSES = [
@@ -1944,9 +2000,11 @@ function listenToDatabase() {
 
     if (currentUserId) {
       renderProfile();
-    }
-    if (isAdminMode) {
-      renderAdminPanel();
+      applyAdminAccess();
+    } else {
+      isAdminMode = false;
+      const tab = document.getElementById('tab-admin-btn');
+      if (tab) tab.style.display = 'none';
     }
   });
 
@@ -2001,36 +2059,141 @@ function buildAvatarGrid() {
   });
 }
 
-/* ================= AUTH: LOGIN / REGISTRO ================= */
+/* ================= AUTH: LOGIN / REGISTRO / RECUPERAR ================= */
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  if (btn) {
+    btn.textContent = showing ? '👁' : '🙈';
+    btn.title = showing ? 'Mostrar contraseña' : 'Ocultar contraseña';
+  }
+}
+
 function showAuthForm(mode) {
   const loginForm = document.getElementById('form-login');
   const regForm = document.getElementById('form-register');
+  const forgotForm = document.getElementById('form-forgot');
   const btnLogin = document.getElementById('btn-show-login');
   const btnReg = document.getElementById('btn-show-register');
 
+  loginForm.style.display = 'none';
+  regForm.style.display = 'none';
+  if (forgotForm) forgotForm.style.display = 'none';
+
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('register-error').style.display = 'none';
+  const forgotErr = document.getElementById('forgot-error');
+  const forgotOk = document.getElementById('forgot-success');
+  if (forgotErr) forgotErr.style.display = 'none';
+  if (forgotOk) forgotOk.style.display = 'none';
+
   if (mode === 'login') {
     loginForm.style.display = 'block';
-    regForm.style.display = 'none';
     btnLogin.style.background = 'rgba(0,240,255,0.25)';
     btnLogin.style.color = 'var(--neon-cyan)';
     btnReg.style.background = 'transparent';
     btnReg.style.color = 'rgba(0,240,255,0.5)';
-  } else {
-    loginForm.style.display = 'none';
+  } else if (mode === 'register') {
     regForm.style.display = 'block';
     btnReg.style.background = 'rgba(0,240,255,0.25)';
     btnReg.style.color = 'var(--neon-cyan)';
     btnLogin.style.background = 'transparent';
     btnLogin.style.color = 'rgba(0,240,255,0.5)';
+  } else if (mode === 'forgot') {
+    if (forgotForm) forgotForm.style.display = 'block';
+    btnLogin.style.background = 'transparent';
+    btnLogin.style.color = 'rgba(0,240,255,0.5)';
+    btnReg.style.background = 'transparent';
+    btnReg.style.color = 'rgba(0,240,255,0.5)';
+    const loginId = document.getElementById('login-identifier');
+    const forgotId = document.getElementById('forgot-identifier');
+    if (loginId && forgotId && loginId.value.trim()) {
+      forgotId.value = loginId.value.trim();
+    }
   }
-  document.getElementById('login-error').style.display = 'none';
-  document.getElementById('register-error').style.display = 'none';
 }
 
 function showAuthError(form, msg) {
-  const el = document.getElementById(form === 'login' ? 'login-error' : 'register-error');
+  const map = {
+    login: 'login-error',
+    register: 'register-error',
+    forgot: 'forgot-error'
+  };
+  const el = document.getElementById(map[form] || 'login-error');
+  if (!el) return;
   el.textContent = msg;
   el.style.display = 'block';
+  const ok = document.getElementById('forgot-success');
+  if (ok) ok.style.display = 'none';
+}
+
+async function resolveEmailFromIdentifier(identifier) {
+  const raw = (identifier || '').trim();
+  if (!raw) return null;
+
+  if (raw.includes('@')) {
+    return raw.toLowerCase();
+  }
+
+  const snap = await db.collection('players').get();
+  let found = null;
+  const clean = raw.replace(/\s+/g, '');
+  snap.forEach(doc => {
+    const d = doc.data();
+    if (
+      (d.nick && d.nick.toLowerCase() === raw.toLowerCase()) ||
+      (d.phone && d.phone.replace(/\s+/g, '') === clean) ||
+      (d.contact && d.contact.replace(/\s+/g, '') === clean)
+    ) {
+      found = d;
+    }
+  });
+
+  return (found && found.email) ? found.email.toLowerCase() : null;
+}
+
+async function doForgotPassword() {
+  const identifier = document.getElementById('forgot-identifier').value.trim();
+  const errEl = document.getElementById('forgot-error');
+  const okEl = document.getElementById('forgot-success');
+
+  if (errEl) errEl.style.display = 'none';
+  if (okEl) okEl.style.display = 'none';
+
+  if (!identifier) {
+    showAuthError('forgot', 'Ingresá tu Nick, Email o Teléfono.');
+    return;
+  }
+
+  try {
+    const email = await resolveEmailFromIdentifier(identifier);
+    if (!email) {
+      showAuthError('forgot', 'No encontramos ninguna cuenta con ese Nick, email o teléfono.');
+      return;
+    }
+
+    await auth.sendPasswordResetEmail(email);
+
+    if (okEl) {
+      okEl.innerHTML = `✅ Te enviamos un enlace a <strong>${email}</strong>. Revisá tu bandeja de entrada (y spam) y seguí las instrucciones para crear una nueva contraseña.`;
+      okEl.style.display = 'block';
+    }
+  } catch (err) {
+    console.error(err);
+    let msg = 'No se pudo enviar el correo de recuperación.';
+    if (err.code === 'auth/user-not-found') {
+      msg = 'No existe una cuenta de Firebase con ese email. Verificá que te registraste con ese correo.';
+    } else if (err.code === 'auth/invalid-email') {
+      msg = 'El email asociado a la cuenta no es válido.';
+    } else if (err.code === 'auth/too-many-requests') {
+      msg = 'Demasiados intentos. Esperá unos minutos e intentá de nuevo.';
+    } else if (err.message) {
+      msg += ' ' + err.message;
+    }
+    showAuthError('forgot', msg);
+  }
 }
 
 async function doRegister() {
@@ -2148,6 +2311,7 @@ function enterApp() {
   renderProfile();
   renderRanking();
   renderNews();
+  applyAdminAccess();
   switchTab('perfil');
   if (!guideFinished) startGuide();
   playLobbyMusic();
@@ -2368,7 +2532,10 @@ async function saveProfile() {
     faction: document.getElementById(`baku${i}-faction`).value
   }));
 
-  await saveUserToCloud(user);
+  const payload = { ...user };
+  delete payload.isAdmin;
+
+  await db.collection("players").doc(user.id).set(payload, { merge: true });
   alert('¡Perfil actualizado con éxito!');
 }
 
@@ -2488,21 +2655,26 @@ function closePlayerModalDirect() {
   document.getElementById('player-modal-overlay').classList.remove('active');
 }
 
-/* ================= PANEL DE ADMINISTRACIÓN Y BORRADO DE USUARIOS ================= */
-function promptAdminAccess() {
-  if (isAdminMode) {
-    switchTab('admin');
-    return;
+/* ================= PANEL DE ADMINISTRACIÓN (solo cuentas con isAdmin: true) ================= */
+function applyAdminAccess() {
+  const me = players.find(p => p.id === currentUserId);
+  const allowed = !!(me && me.isAdmin === true);
+  isAdminMode = allowed;
+
+  const tab = document.getElementById('tab-admin-btn');
+  if (tab) {
+    tab.style.display = allowed ? 'block' : 'none';
   }
-  const pin = prompt('Introduce la Clave PIN del Administrador:');
-  if (pin === ADMIN_PIN) {
-    isAdminMode = true;
-    document.getElementById('tab-admin-btn').style.display = 'block';
-    switchTab('admin');
+
+  // Si estaba en admin y le quitaron el permiso, volver a perfil
+  if (!allowed) {
+    const adminSec = document.getElementById('sec-admin');
+    if (adminSec && adminSec.classList.contains('active')) {
+      switchTab('perfil');
+    }
+  } else {
     renderAdminPanel();
     renderAdminNewsList();
-  } else if (pin !== null) {
-    alert('Clave PIN Incorrecta.');
   }
 }
 
@@ -3322,12 +3494,10 @@ async function leaveDuelRoom(silent) {
     playLobbyMusic();
   }
 }
-
 /* ================= INICIALIZACIÓN ================= */
 window.addEventListener('DOMContentLoaded', () => {
   listenToDatabase();
   applyVolumeToAudios();
-
   // Escuchar cambios de autenticación (sesión persistente)
   auth.onAuthStateChanged(async (user) => {
     if (user) {
@@ -3361,6 +3531,9 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
       currentUserId = null;
       isAppInitialized = false;
+      isAdminMode = false;
+      const tab = document.getElementById('tab-admin-btn');
+      if (tab) tab.style.display = 'none';
       document.getElementById('welcome-screen').classList.remove('hidden');
       document.getElementById('main-app').style.display = 'none';
       showAuthForm('login');
