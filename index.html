@@ -602,6 +602,71 @@
     border: 1px solid var(--neon-cyan);
   }
 
+  .baku-form-toggles {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0 6px;
+    flex-wrap: wrap;
+  }
+  .baku-form-toggle {
+    flex: 1;
+    min-width: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    background: rgba(0, 20, 40, 0.6);
+    color: rgba(224, 247, 255, 0.7);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .baku-form-toggle input { display: none; }
+  .baku-form-toggle.active-fusion {
+    border-color: var(--neon-magenta);
+    color: var(--neon-magenta);
+    background: rgba(255, 0, 170, 0.12);
+    box-shadow: 0 0 10px rgba(255, 0, 170, 0.2);
+  }
+  .baku-form-toggle.active-evo {
+    border-color: #ffaa00;
+    color: #ffcc55;
+    background: rgba(255, 170, 0, 0.12);
+    box-shadow: 0 0 10px rgba(255, 170, 0, 0.2);
+  }
+  .baku-subpanel {
+    display: none;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px dashed rgba(0, 240, 255, 0.25);
+    background: rgba(0, 10, 25, 0.5);
+  }
+  .baku-subpanel.open { display: block; }
+  .baku-subpanel.fusion-panel {
+    border-color: rgba(255, 0, 170, 0.35);
+  }
+  .baku-subpanel.evo-panel {
+    border-color: rgba(255, 170, 0, 0.35);
+  }
+  .baku-subpanel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .baku-hint {
+    font-size: 0.65rem;
+    opacity: 0.55;
+    line-height: 1.35;
+    margin-top: 6px;
+  }
+
   /* PERSONAJE GUÍA */
   #guide-character {
     position: fixed;
@@ -1459,84 +1524,8 @@
         <button type="button" class="btn btn-sm" id="btn-set-active-deck" onclick="setActiveDeckFromProfile()" style="margin-bottom:12px; width:100%;">⭐ Usar este deck en duelo</button>
         <div id="active-deck-label" style="font-size:0.75rem; color:var(--neon-green); margin-bottom:10px; text-align:center;"></div>
 
-        <div class="bakugan-team-container">
-          <!-- BAKUGAN 1 -->
-          <div class="baku-card-editor" id="baku-card-1">
-            <div class="baku-card-header">BAKUGAN #1</div>
-            <input type="text" id="baku1-name" placeholder="Nombre del Bakugan..." class="baku-input-name" />
-            <div class="baku-stats-row">
-              <div class="baku-stat-field">
-                <img src="simbolo_bpower.png" class="baku-icon" alt="B-Power" title="B-Power" />
-                <input type="number" id="baku1-bpower" placeholder="B-Power" />
-              </div>
-              <div class="baku-stat-field">
-                <img src="simbolo_dano.png" class="baku-icon" alt="Daño" title="Daño" />
-                <input type="number" id="baku1-damage" placeholder="Daño" />
-              </div>
-            </div>
-            <div class="baku-faction-label">Seleccionar Facción:</div>
-            <div class="baku-faction-selector" data-baku-index="1">
-              <img src="faccion_pyrus.png" data-faction="Pyrus" title="Pyrus" class="faction-opt" onclick="selectBakuganFaction(1, 'Pyrus', this)" />
-              <img src="faccion_aquos.png" data-faction="Aquos" title="Aquos" class="faction-opt" onclick="selectBakuganFaction(1, 'Aquos', this)" />
-              <img src="faccion_ventus.png" data-faction="Ventus" title="Ventus" class="faction-opt" onclick="selectBakuganFaction(1, 'Ventus', this)" />
-              <img src="faccion_aurelus.png" data-faction="Aurelus" title="Aurelus" class="faction-opt" onclick="selectBakuganFaction(1, 'Aurelus', this)" />
-              <img src="faccion_haos.png" data-faction="Haos" title="Haos" class="faction-opt" onclick="selectBakuganFaction(1, 'Haos', this)" />
-              <img src="faccion_darkus.png" data-faction="Darkus" title="Darkus" class="faction-opt" onclick="selectBakuganFaction(1, 'Darkus', this)" />
-            </div>
-            <input type="hidden" id="baku1-faction" value="" />
-          </div>
-
-          <!-- BAKUGAN 2 -->
-          <div class="baku-card-editor" id="baku-card-2">
-            <div class="baku-card-header">BAKUGAN #2</div>
-            <input type="text" id="baku2-name" placeholder="Nombre del Bakugan..." class="baku-input-name" />
-            <div class="baku-stats-row">
-              <div class="baku-stat-field">
-                <img src="simbolo_bpower.png" class="baku-icon" alt="B-Power" title="B-Power" />
-                <input type="number" id="baku2-bpower" placeholder="B-Power" />
-              </div>
-              <div class="baku-stat-field">
-                <img src="simbolo_dano.png" class="baku-icon" alt="Daño" title="Daño" />
-                <input type="number" id="baku2-damage" placeholder="Daño" />
-              </div>
-            </div>
-            <div class="baku-faction-label">Seleccionar Facción:</div>
-            <div class="baku-faction-selector" data-baku-index="2">
-              <img src="faccion_pyrus.png" data-faction="Pyrus" title="Pyrus" class="faction-opt" onclick="selectBakuganFaction(2, 'Pyrus', this)" />
-              <img src="faccion_aquos.png" data-faction="Aquos" title="Aquos" class="faction-opt" onclick="selectBakuganFaction(2, 'Aquos', this)" />
-              <img src="faccion_ventus.png" data-faction="Ventus" title="Ventus" class="faction-opt" onclick="selectBakuganFaction(2, 'Ventus', this)" />
-              <img src="faccion_aurelus.png" data-faction="Aurelus" title="Aurelus" class="faction-opt" onclick="selectBakuganFaction(2, 'Aurelus', this)" />
-              <img src="faccion_haos.png" data-faction="Haos" title="Haos" class="faction-opt" onclick="selectBakuganFaction(2, 'Haos', this)" />
-              <img src="faccion_darkus.png" data-faction="Darkus" title="Darkus" class="faction-opt" onclick="selectBakuganFaction(2, 'Darkus', this)" />
-            </div>
-            <input type="hidden" id="baku2-faction" value="" />
-          </div>
-
-          <!-- BAKUGAN 3 -->
-          <div class="baku-card-editor" id="baku-card-3">
-            <div class="baku-card-header">BAKUGAN #3</div>
-            <input type="text" id="baku3-name" placeholder="Nombre del Bakugan..." class="baku-input-name" />
-            <div class="baku-stats-row">
-              <div class="baku-stat-field">
-                <img src="simbolo_bpower.png" class="baku-icon" alt="B-Power" title="B-Power" />
-                <input type="number" id="baku3-bpower" placeholder="B-Power" />
-              </div>
-              <div class="baku-stat-field">
-                <img src="simbolo_dano.png" class="baku-icon" alt="Daño" title="Daño" />
-                <input type="number" id="baku3-damage" placeholder="Daño" />
-              </div>
-            </div>
-            <div class="baku-faction-label">Seleccionar Facción:</div>
-            <div class="baku-faction-selector" data-baku-index="3">
-              <img src="faccion_pyrus.png" data-faction="Pyrus" title="Pyrus" class="faction-opt" onclick="selectBakuganFaction(3, 'Pyrus', this)" />
-              <img src="faccion_aquos.png" data-faction="Aquos" title="Aquos" class="faction-opt" onclick="selectBakuganFaction(3, 'Aquos', this)" />
-              <img src="faccion_ventus.png" data-faction="Ventus" title="Ventus" class="faction-opt" onclick="selectBakuganFaction(3, 'Ventus', this)" />
-              <img src="faccion_aurelus.png" data-faction="Aurelus" title="Aurelus" class="faction-opt" onclick="selectBakuganFaction(3, 'Aurelus', this)" />
-              <img src="faccion_haos.png" data-faction="Haos" title="Haos" class="faction-opt" onclick="selectBakuganFaction(3, 'Haos', this)" />
-              <img src="faccion_darkus.png" data-faction="Darkus" title="Darkus" class="faction-opt" onclick="selectBakuganFaction(3, 'Darkus', this)" />
-            </div>
-            <input type="hidden" id="baku3-faction" value="" />
-          </div>
+        <div class="bakugan-team-container" id="bakugan-team-container">
+          <!-- Cards generadas por JS (Base + Fusión + Evo) -->
         </div>
 
         <button class="btn" onclick="saveProfile()" style="margin-top: 10px;">💾 GUARDAR PERFIL</button>
@@ -2000,10 +1989,18 @@
   <div style="max-width:480px; margin:0 auto;">
 
     <!-- HEADER ARENA -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; position:relative;">
       <div style="font-family:'Orbitron'; color:var(--neon-cyan); font-size:0.85rem;">⚔️ ARENA</div>
       <div style="font-family:'Orbitron'; color:var(--neon-magenta); font-size:0.7rem;">SALA: <span id="display-room-code">---</span></div>
-      <button class="btn btn-sm btn-danger" onclick="leaveDuelRoom()">SALIR</button>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button class="btn btn-sm" id="duel-audio-btn" onclick="toggleDuelAudioPanel()" title="Audio" style="padding:6px 10px; min-width:auto;">🔊</button>
+        <button class="btn btn-sm btn-danger" onclick="requestLeaveDuel()">SALIR</button>
+      </div>
+      <div id="duel-audio-panel" style="display:none; position:absolute; top:40px; right:0; z-index:30; background:rgba(8,12,24,0.96); border:1px solid var(--border); border-radius:10px; padding:12px; width:200px; box-shadow:0 0 20px rgba(0,240,255,0.2);">
+        <label style="font-size:0.65rem; color:var(--neon-cyan);">Volumen</label>
+        <input type="range" id="duel-volume-slider" min="0" max="100" value="40" style="width:100%; accent-color:var(--neon-cyan); margin:6px 0 10px;" oninput="setVolumeFromDuel(this.value)" />
+        <button class="btn btn-sm" style="width:100%;" id="duel-mute-btn" onclick="toggleMuteFromDuel()">Silenciar</button>
+      </div>
     </div>
 
     <!-- ESTADO DE SALA (esperando rival) -->
@@ -2042,7 +2039,7 @@
         </div>
       </div>
       <p id="duel-priority-hint" style="font-size:0.72rem; opacity:0.75; text-align:center; margin-bottom:12px; line-height:1.35;">
-        Quien tiene prioridad coloca el primer core y actúa primero en el turno.
+        Solo quien tiene la prioridad puede pasarla. El rival debe devolvértela para que vuelvas a actuar.
       </p>
 
       <!-- DECKS (vida) -->
@@ -2055,36 +2052,66 @@
             <button class="btn btn-sm btn-danger" onclick="syncUpdateDeck(-5)">-5</button>
             <button class="btn btn-sm" onclick="syncUpdateDeck(1)">+1</button>
           </div>
-          <div style="font-size:0.6rem; opacity:0.55; margin-top:6px;">Vida 0 sigue en juego · termina en -1</div>
         </div>
         <div class="panel" style="padding:12px; text-align:center; margin-bottom:0; border-color:var(--neon-magenta);">
           <div style="font-size:0.7rem; color:var(--neon-magenta); margin-bottom:4px;" id="opp-name-label">RIVAL</div>
           <div id="opp-deck" style="font-family:'Orbitron'; font-size:2rem; font-weight:bold;">50</div>
-          <div style="font-size:0.65rem; opacity:0.5; margin-top:8px;">(solo él lo modifica)</div>
         </div>
       </div>
 
-      <button id="btn-main-action" class="btn" style="margin-bottom:10px; font-weight:bold; background:linear-gradient(45deg,#ff9900,#ff0055);" onclick="handleMainActionButton()">
-        🎴 Robar Mano Inicial (-6)
+      <button id="btn-main-action" class="btn" style="margin-bottom:10px; font-weight:bold; background:linear-gradient(45deg,#ff9900,#ff0055); display:flex; align-items:center; justify-content:center; gap:8px;" onclick="handleMainActionButton()">
+        <img src="logo_robar_carta.png" alt="" style="width:22px; height:22px; object-fit:contain;" onerror="this.style.display='none'" />
+        <span id="btn-main-action-label">Robar Mano Inicial (-6)</span>
       </button>
-      <button id="btn-next-turn" class="btn" style="margin-bottom:10px; display:none;" onclick="advanceDuelTurn()">
-        ⏭ Pasar turno (rota prioridad)
-      </button>
-      <button class="btn btn-danger" style="margin-bottom:14px;" onclick="forfeitDuel()">
-        🏳️ Abandonar partida
+      <button id="btn-next-turn" class="btn" style="margin-bottom:14px; display:none;" onclick="advanceDuelTurn()">
+        ⏭ Pasar prioridad al rival
       </button>
 
-      <!-- BAKUGAN EN CENTRO -->
-      <div class="panel" style="text-align:center; margin-bottom:14px;">
-        <div style="font-family:'Orbitron'; font-size:0.7rem; color:var(--neon-cyan); margin-bottom:8px;">BAKUGAN EN CAMPO</div>
-        <div id="arena-center-card" style="min-height:90px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
-          <div style="opacity:0.5; font-size:0.85rem;">Seleccioná uno de tus Bakugan abajo</div>
+      <!-- COMPARATIVA EN CAMPO: VOS vs RIVAL -->
+      <div class="panel" style="margin-bottom:14px; padding:12px;">
+        <div style="font-family:'Orbitron'; font-size:0.7rem; color:var(--neon-cyan); margin-bottom:10px; text-align:center;">BAKUGAN EN CAMPO</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <!-- TU BAKUGAN -->
+          <div style="background:rgba(0,240,255,0.08); border:1px solid rgba(0,240,255,0.35); border-radius:10px; padding:10px; text-align:center;">
+            <div style="font-size:0.6rem; color:var(--neon-cyan); letter-spacing:1px; margin-bottom:4px;">VOS</div>
+            <div id="arena-my-name" style="font-family:'Orbitron'; font-size:0.85rem; color:#fff; min-height:1.2em;">—</div>
+            <div id="arena-my-faction" style="font-size:0.7rem; opacity:0.7; margin-bottom:6px;">—</div>
+            <div style="display:flex; justify-content:center; align-items:center; gap:12px; font-family:'Orbitron';">
+              <div style="display:flex; align-items:center; gap:4px;">
+                <img src="simbolo_bpower.png" alt="B" style="width:18px; height:18px; object-fit:contain;" onerror="this.style.display='none'" />
+                <span id="arena-bpower">0</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <img src="simbolo_dano.png" alt="DMG" style="width:18px; height:18px; object-fit:contain;" onerror="this.style.display='none'" />
+                <span id="arena-damage">0</span>
+              </div>
+            </div>
+          </div>
+          <!-- RIVAL -->
+          <div style="background:rgba(255,0,170,0.08); border:1px solid rgba(255,0,170,0.35); border-radius:10px; padding:10px; text-align:center;">
+            <div style="font-size:0.6rem; color:var(--neon-magenta); letter-spacing:1px; margin-bottom:4px;">RIVAL</div>
+            <div id="arena-opp-name" style="font-family:'Orbitron'; font-size:0.85rem; color:#fff; min-height:1.2em;">—</div>
+            <div id="arena-opp-faction" style="font-size:0.7rem; opacity:0.7; margin-bottom:6px;">—</div>
+            <div style="display:flex; justify-content:center; align-items:center; gap:12px; font-family:'Orbitron';">
+              <div style="display:flex; align-items:center; gap:4px;">
+                <img src="simbolo_bpower.png" alt="B" style="width:18px; height:18px; object-fit:contain;" onerror="this.style.display='none'" />
+                <span id="arena-opp-bpower">0</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <img src="simbolo_dano.png" alt="DMG" style="width:18px; height:18px; object-fit:contain;" onerror="this.style.display='none'" />
+                <span id="arena-opp-damage">0</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="arena-stat-controls" style="display:none; margin-top:10px;">
+
+        <!-- Controles solo de TUS stats -->
+        <div id="arena-stat-controls" style="display:none; margin-top:12px;">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <div>
-              <div style="font-size:0.65rem; color:var(--neon-cyan);">B-POWER</div>
-              <div id="arena-bpower" style="font-family:'Orbitron'; font-size:1.4rem;">0</div>
+              <div style="font-size:0.65rem; color:var(--neon-cyan); text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;">
+                <img src="simbolo_bpower.png" alt="" style="width:16px; height:16px; object-fit:contain;" onerror="this.style.display='none'" /> B-POWER
+              </div>
               <div class="arena-stat-btns">
                 <button class="btn btn-sm btn-danger" onclick="syncUpdateStat('bpower', -100)">-100</button>
                 <button class="btn btn-sm btn-danger" onclick="syncUpdateStat('bpower', -50)">-50</button>
@@ -2093,8 +2120,9 @@
               </div>
             </div>
             <div>
-              <div style="font-size:0.65rem; color:var(--neon-magenta);">DAÑO</div>
-              <div id="arena-damage" style="font-family:'Orbitron'; font-size:1.4rem;">0</div>
+              <div style="font-size:0.65rem; color:var(--neon-magenta); text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;">
+                <img src="simbolo_dano.png" alt="" style="width:16px; height:16px; object-fit:contain;" onerror="this.style.display='none'" /> DAÑO
+              </div>
               <div class="arena-stat-btns">
                 <button class="btn btn-sm btn-danger" onclick="syncUpdateStat('damage', -1)">-1</button>
                 <button class="btn btn-sm btn-danger" onclick="syncUpdateStat('damage', -2)">-2</button>
@@ -2103,6 +2131,12 @@
               </div>
             </div>
           </div>
+          <button class="btn btn-sm btn-danger" style="width:100%; margin-top:10px;" onclick="resetActiveBakuganToBase()">
+            ↺ Perdí la ronda · stats de la forma
+          </button>
+          <p style="font-size:0.65rem; opacity:0.55; text-align:center; margin-top:6px; line-height:1.3;">
+            Fusión / Evo / Gears son permanentes hasta negarlas. Si perdés la ronda, solo se reinician los mods temporales a la forma activa.
+          </p>
         </div>
       </div>
 
@@ -2111,12 +2145,6 @@
         <div style="font-family:'Orbitron'; font-size:0.7rem; color:var(--neon-cyan); margin-bottom:4px;">TU EQUIPO</div>
         <div id="my-active-deck-name" style="font-size:0.75rem; opacity:0.7; margin-bottom:8px;">Deck activo</div>
         <div id="my-bakugan-list" style="display:flex; flex-direction:column; gap:6px;"></div>
-      </div>
-
-      <!-- RIVAL -->
-      <div class="panel" style="border-color:var(--neon-magenta);">
-        <div style="font-family:'Orbitron'; font-size:0.7rem; color:var(--neon-magenta); margin-bottom:8px;">BAKUGAN DEL RIVAL</div>
-        <div id="opp-bakugan-display" style="font-size:0.85rem; opacity:0.7;">Esperando selección...</div>
       </div>
 
     </div>
@@ -2239,7 +2267,19 @@ function recalculatePoints(player) {
 }
 
 function emptyBaku() {
-  return { name: '', bpower: '', damage: '', faction: '' };
+  return {
+    name: '',
+    bpower: '',
+    damage: '',
+    faction: '',
+    faction2: '',
+    isFusion: false,
+    isEvo: false,
+    fusionBpower: '',
+    fusionDamage: '',
+    evoBpower: '',
+    evoDamage: ''
+  };
 }
 
 function normalizeBakuList(list) {
@@ -2251,9 +2291,139 @@ function normalizeBakuList(list) {
       name: b.name || '',
       bpower: b.bpower || '',
       damage: b.damage || '',
-      faction: b.faction || ''
+      faction: b.faction || '',
+      faction2: b.faction2 || '',
+      isFusion: !!b.isFusion,
+      isEvo: !!b.isEvo,
+      fusionBpower: b.fusionBpower || '',
+      fusionDamage: b.fusionDamage || '',
+      evoBpower: b.evoBpower || '',
+      evoDamage: b.evoDamage || ''
     };
   });
+}
+
+function factionSelectorHtml(index) {
+  const facs = ['Pyrus', 'Aquos', 'Ventus', 'Aurelus', 'Haos', 'Darkus'];
+  return facs.map(f =>
+    `<img src="faccion_${f.toLowerCase()}.png" data-faction="${f}" title="${f}" class="faction-opt" onclick="selectBakuganFaction(${index}, '${f}', this)" />`
+  ).join('');
+}
+
+function buildBakuganEditorsHtml() {
+  const container = document.getElementById('bakugan-team-container');
+  if (!container || container.dataset.built === '1') return;
+  let html = '';
+  for (let i = 1; i <= 3; i++) {
+    html += `
+      <div class="baku-card-editor" id="baku-card-${i}">
+        <div class="baku-card-header">BAKUGAN #${i}</div>
+        <input type="text" id="baku${i}-name" placeholder="Nombre del Bakugan..." class="baku-input-name" />
+        <div class="baku-stats-row">
+          <div class="baku-stat-field">
+            <img src="simbolo_bpower.png" class="baku-icon" alt="B-Power" />
+            <input type="number" id="baku${i}-bpower" placeholder="B-Power base" />
+          </div>
+          <div class="baku-stat-field">
+            <img src="simbolo_dano.png" class="baku-icon" alt="Daño" />
+            <input type="number" id="baku${i}-damage" placeholder="Daño base" />
+          </div>
+        </div>
+        <div class="baku-faction-label">Facción principal:</div>
+        <div class="baku-faction-selector" data-baku-index="${i}" data-slot="1">
+          ${factionSelectorHtml(i)}
+        </div>
+        <input type="hidden" id="baku${i}-faction" value="" />
+        <input type="hidden" id="baku${i}-faction2" value="" />
+
+        <div class="baku-form-toggles">
+          <label class="baku-form-toggle" id="baku${i}-fusion-toggle" onclick="toggleBakuForm(${i}, 'fusion')">
+            <img src="logo_fusion.png" alt="" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display='none'" />
+            <span>FUSIÓN</span>
+          </label>
+          <label class="baku-form-toggle" id="baku${i}-evo-toggle" onclick="toggleBakuForm(${i}, 'evo')">
+            <img src="logo_diamante.png" alt="" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display='none'" />
+            <span>EVO</span>
+          </label>
+        </div>
+        <input type="hidden" id="baku${i}-isFusion" value="0" />
+        <input type="hidden" id="baku${i}-isEvo" value="0" />
+
+        <div class="baku-subpanel fusion-panel" id="baku${i}-fusion-panel">
+          <div class="baku-subpanel-title" style="color:var(--neon-magenta); display:flex;align-items:center;gap:6px;">
+            <img src="logo_fusion.png" alt="" style="width:16px;height:16px;object-fit:contain;" onerror="this.style.display='none'" /> STATS DE FUSIÓN
+          </div>
+          <div class="baku-stats-row">
+            <div class="baku-stat-field">
+              <img src="simbolo_bpower.png" class="baku-icon" alt="B-Power" />
+              <input type="number" id="baku${i}-fusion-bpower" placeholder="B-Power F" />
+            </div>
+            <div class="baku-stat-field">
+              <img src="simbolo_dano.png" class="baku-icon" alt="Daño" />
+              <input type="number" id="baku${i}-fusion-damage" placeholder="Daño F" />
+            </div>
+          </div>
+          <div class="baku-faction-label">2ª facción (fusión):</div>
+          <div class="baku-faction-selector" data-baku-index="${i}" data-slot="2">
+            ${factionSelectorHtml(i)}
+          </div>
+          <p class="baku-hint">En duelo: primero activás Fusión; si también tiene Evo, la Evo solo después de fusionar.</p>
+        </div>
+
+        <div class="baku-subpanel evo-panel" id="baku${i}-evo-panel">
+          <div class="baku-subpanel-title" style="color:#ffcc55; display:flex;align-items:center;gap:6px;">
+            <img src="logo_diamante.png" alt="" style="width:16px;height:16px;object-fit:contain;" onerror="this.style.display='none'" /> STATS DE EVO
+          </div>
+          <div class="baku-stats-row">
+            <div class="baku-stat-field">
+              <img src="simbolo_bpower.png" class="baku-icon" alt="B-Power" />
+              <input type="number" id="baku${i}-evo-bpower" placeholder="B-Power Evo" />
+            </div>
+            <div class="baku-stat-field">
+              <img src="simbolo_dano.png" class="baku-icon" alt="Daño" />
+              <input type="number" id="baku${i}-evo-damage" placeholder="Daño Evo" />
+            </div>
+          </div>
+          <p class="baku-hint" id="baku${i}-evo-hint">Bakugan común: puede evolucionar cuando quiera. Si es Fusión+Evo: solo después de fusionar.</p>
+        </div>
+      </div>`;
+  }
+  container.innerHTML = html;
+  container.dataset.built = '1';
+}
+
+function toggleBakuForm(index, kind) {
+  const isFusionEl = document.getElementById(`baku${index}-isFusion`);
+  const isEvoEl = document.getElementById(`baku${index}-isEvo`);
+  if (kind === 'fusion') {
+    const next = isFusionEl.value !== '1';
+    isFusionEl.value = next ? '1' : '0';
+  } else {
+    const next = isEvoEl.value !== '1';
+    isEvoEl.value = next ? '1' : '0';
+  }
+  refreshBakuFormUI(index);
+}
+
+function refreshBakuFormUI(index) {
+  const isFusion = document.getElementById(`baku${index}-isFusion`).value === '1';
+  const isEvo = document.getElementById(`baku${index}-isEvo`).value === '1';
+  const fusToggle = document.getElementById(`baku${index}-fusion-toggle`);
+  const evoToggle = document.getElementById(`baku${index}-evo-toggle`);
+  const fusPanel = document.getElementById(`baku${index}-fusion-panel`);
+  const evoPanel = document.getElementById(`baku${index}-evo-panel`);
+  if (fusToggle) fusToggle.classList.toggle('active-fusion', isFusion);
+  if (evoToggle) evoToggle.classList.toggle('active-evo', isEvo);
+  if (fusPanel) fusPanel.classList.toggle('open', isFusion);
+  if (evoPanel) evoPanel.classList.toggle('open', isEvo);
+  const hint = document.getElementById(`baku${index}-evo-hint`);
+  if (hint) {
+    hint.textContent = isFusion && isEvo
+      ? 'Fusión + Evo: en duelo primero Fusión, después Evo.'
+      : isEvo
+        ? 'Evo de Bakugan común: puede evolucionar cuando quiera.'
+        : 'Activá Evo para cargar stats alternativas de evolución.';
+  }
 }
 
 function ensurePlayerDecks(user) {
@@ -2699,6 +2869,29 @@ function applyVolumeToAudios() {
   if (muteBtn) muteBtn.textContent = musicMuted ? '🔊 Activar sonido' : '🔇 Silenciar';
   const slider = document.getElementById('audio-volume');
   if (slider) slider.value = String(musicVolume);
+  // Panel de audio dentro de la arena
+  const duelSlider = document.getElementById('duel-volume-slider');
+  if (duelSlider) duelSlider.value = String(musicVolume);
+  const duelMute = document.getElementById('duel-mute-btn');
+  if (duelMute) duelMute.textContent = musicMuted ? '🔊 Activar sonido' : '🔇 Silenciar';
+  const duelAudioBtn = document.getElementById('duel-audio-btn');
+  if (duelAudioBtn) duelAudioBtn.textContent = musicMuted ? '🔇' : '🔊';
+}
+
+function toggleDuelAudioPanel() {
+  const panel = document.getElementById('duel-audio-panel');
+  if (!panel) return;
+  const open = panel.style.display === 'block';
+  panel.style.display = open ? 'none' : 'block';
+  if (!open) applyVolumeToAudios();
+}
+
+function setVolumeFromDuel(val) {
+  setMusicVolume(val);
+}
+
+function toggleMuteFromDuel() {
+  toggleMute();
 }
 
 function unlockMusic() {
@@ -2790,36 +2983,82 @@ document.addEventListener('pointerdown', () => {
 }, { once: true });
 
 function selectBakuganFaction(bakuIndex, factionName, element) {
-  document.getElementById(`baku${bakuIndex}-faction`).value = factionName;
   const container = element.parentElement;
+  const slot = container.getAttribute('data-slot') || '1';
+  const isFusion = document.getElementById(`baku${bakuIndex}-isFusion`).value === '1';
+
+  if (slot === '2') {
+    // Segunda facción (solo fusión)
+    document.getElementById(`baku${bakuIndex}-faction2`).value = factionName;
+    container.querySelectorAll('.faction-opt').forEach(img => img.classList.remove('selected'));
+    element.classList.add('selected');
+    return;
+  }
+
+  // Facción principal
+  const primaryEl = document.getElementById(`baku${bakuIndex}-faction`);
+  // Si es fusión y tocan la misma que ya está, no-op; si quieren 2 facciones en el selector principal:
+  // usamos selector principal solo para facción 1
+  primaryEl.value = factionName;
   container.querySelectorAll('.faction-opt').forEach(img => img.classList.remove('selected'));
   element.classList.add('selected');
+  // Si la 2ª es igual a la 1ª, limpiar 2ª
+  const f2 = document.getElementById(`baku${bakuIndex}-faction2`);
+  if (f2 && f2.value === factionName) f2.value = '';
 }
 
 function readBakuganEditors() {
-  return [1, 2, 3].map(i => ({
-    name: document.getElementById(`baku${i}-name`).value.trim(),
-    bpower: document.getElementById(`baku${i}-bpower`).value,
-    damage: document.getElementById(`baku${i}-damage`).value,
-    faction: document.getElementById(`baku${i}-faction`).value
-  }));
+  return [1, 2, 3].map(i => {
+    const nameEl = document.getElementById(`baku${i}-name`);
+    if (!nameEl) return emptyBaku();
+    return {
+      name: nameEl.value.trim(),
+      bpower: document.getElementById(`baku${i}-bpower`).value,
+      damage: document.getElementById(`baku${i}-damage`).value,
+      faction: document.getElementById(`baku${i}-faction`).value,
+      faction2: document.getElementById(`baku${i}-faction2`).value,
+      isFusion: document.getElementById(`baku${i}-isFusion`).value === '1',
+      isEvo: document.getElementById(`baku${i}-isEvo`).value === '1',
+      fusionBpower: document.getElementById(`baku${i}-fusion-bpower`).value,
+      fusionDamage: document.getElementById(`baku${i}-fusion-damage`).value,
+      evoBpower: document.getElementById(`baku${i}-evo-bpower`).value,
+      evoDamage: document.getElementById(`baku${i}-evo-damage`).value
+    };
+  });
 }
 
 function fillBakuganEditors(bakuList) {
+  buildBakuganEditorsHtml();
   const list = normalizeBakuList(bakuList);
   [1, 2, 3].forEach(i => {
     const item = list[i - 1] || emptyBaku();
-    document.getElementById(`baku${i}-name`).value = item.name || '';
-    document.getElementById(`baku${i}-bpower`).value = item.bpower || '';
-    document.getElementById(`baku${i}-damage`).value = item.damage || '';
-    const faction = item.faction || '';
-    document.getElementById(`baku${i}-faction`).value = faction;
-    const container = document.querySelector(`.baku-faction-selector[data-baku-index="${i}"]`);
-    if (container) {
-      container.querySelectorAll('.faction-opt').forEach(img => {
-        img.classList.toggle('selected', img.getAttribute('data-faction') === faction);
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    set(`baku${i}-name`, item.name || '');
+    set(`baku${i}-bpower`, item.bpower || '');
+    set(`baku${i}-damage`, item.damage || '');
+    set(`baku${i}-faction`, item.faction || '');
+    set(`baku${i}-faction2`, item.faction2 || '');
+    set(`baku${i}-isFusion`, item.isFusion ? '1' : '0');
+    set(`baku${i}-isEvo`, item.isEvo ? '1' : '0');
+    set(`baku${i}-fusion-bpower`, item.fusionBpower || '');
+    set(`baku${i}-fusion-damage`, item.fusionDamage || '');
+    set(`baku${i}-evo-bpower`, item.evoBpower || '');
+    set(`baku${i}-evo-damage`, item.evoDamage || '');
+
+    // Marcar facciones visualmente
+    const primarySel = document.querySelector(`.baku-faction-selector[data-baku-index="${i}"][data-slot="1"]`);
+    if (primarySel) {
+      primarySel.querySelectorAll('.faction-opt').forEach(img => {
+        img.classList.toggle('selected', img.getAttribute('data-faction') === (item.faction || ''));
       });
     }
+    const secondSel = document.querySelector(`.baku-faction-selector[data-baku-index="${i}"][data-slot="2"]`);
+    if (secondSel) {
+      secondSel.querySelectorAll('.faction-opt').forEach(img => {
+        img.classList.toggle('selected', img.getAttribute('data-faction') === (item.faction2 || ''));
+      });
+    }
+    refreshBakuFormUI(i);
   });
 }
 
@@ -3060,11 +3299,19 @@ function openPlayerModal(player) {
       if (b && (b.name || b.bpower || b.damage)) {
         const item = document.createElement('div');
         item.className = 'modal-bakugan-item';
+        const badges = [];
+        if (b.isFusion) badges.push('<span style="color:var(--neon-magenta);font-size:0.65rem;display:inline-flex;align-items:center;gap:3px;"><img src="logo_fusion.png" style="width:12px;height:12px;object-fit:contain;" onerror="this.style.display=\'none\'" />Fusión</span>');
+        if (b.isEvo) badges.push('<span style="color:#ffcc55;font-size:0.65rem;display:inline-flex;align-items:center;gap:3px;"><img src="logo_diamante.png" style="width:12px;height:12px;object-fit:contain;" onerror="this.style.display=\'none\'" />Evo</span>');
+        const facStr = b.faction2 ? `${b.faction}/${b.faction2}` : b.faction;
         item.innerHTML = `
-          <strong>#${idx + 1} ${b.name || 'Desconocido'}</strong>
-          ${b.faction ? `(${b.faction})` : ''}
-          <br>
-          <span style="font-size:0.75rem; color:var(--neon-cyan);">⚡ ${b.bpower || 0} Gs | 💥 ${b.damage || 0} DMG</span>
+          <div style="display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap;">
+            <strong>#${idx + 1} ${b.name || 'Desconocido'}</strong>
+            ${typeof factionIconHtml === 'function' ? factionIconHtml(facStr, 18) : (facStr || '')}
+            ${badges.join(' ')}
+          </div>
+          <div style="font-size:0.8rem; color:var(--neon-cyan); margin-top:4px; display:flex; justify-content:center; gap:8px; align-items:center;">
+            ${typeof statsLineHtml === 'function' ? statsLineHtml(b.bpower || 0, b.damage || 0, 15) : ((b.bpower || 0) + ' / ' + (b.damage || 0))}
+          </div>
         `;
         bakuContainer.appendChild(item);
       }
@@ -3080,7 +3327,10 @@ function openPlayerModal(player) {
     facList.forEach(f => {
       const tag = document.createElement('span');
       tag.className = 'modal-faction-tag';
-      tag.textContent = f;
+      tag.style.display = 'inline-flex';
+      tag.style.alignItems = 'center';
+      tag.style.gap = '4px';
+      tag.innerHTML = (typeof factionIconHtml === 'function' ? factionIconHtml(f, 16) : '') + ' ' + f;
       facContainer.appendChild(tag);
     });
   }
@@ -3637,6 +3887,231 @@ function getMyPlayer() {
   return players.find(p => p.id === currentUserId) || null;
 }
 
+/** Stats en vivo por slot de Bakugan (partida) */
+function buildLiveStatsFromBakugan(bakuList) {
+  const list = Array.isArray(bakuList) ? bakuList : [];
+  return [0, 1, 2].map(i => {
+    const b = list[i] || {};
+    const bp = parseInt(b.bpower, 10) || 0;
+    const dm = parseInt(b.damage, 10) || 0;
+    return {
+      bpower: bp,
+      damage: dm,
+      form: 'base',
+      formBaseB: bp,
+      formBaseD: dm
+    };
+  });
+}
+
+function getLiveStatsArray(d, role) {
+  const key = role === 'host' ? 'hostLiveStats' : 'guestLiveStats';
+  const baku = role === 'host' ? (d.hostBakugan || []) : (d.guestBakugan || []);
+  let arr;
+  if (Array.isArray(d[key]) && d[key].length >= 3) {
+    arr = d[key].map((s, i) => {
+      const b = baku[i] || {};
+      const bp = parseInt(s && s.bpower, 10);
+      const dm = parseInt(s && s.damage, 10);
+      const baseB = parseInt(b.bpower, 10) || 0;
+      const baseD = parseInt(b.damage, 10) || 0;
+      return {
+        bpower: isNaN(bp) ? baseB : bp,
+        damage: isNaN(dm) ? baseD : dm,
+        form: (s && s.form) || 'base',
+        formBaseB: (s && s.formBaseB != null) ? (parseInt(s.formBaseB, 10) || 0) : baseB,
+        formBaseD: (s && s.formBaseD != null) ? (parseInt(s.formBaseD, 10) || 0) : baseD
+      };
+    });
+  } else {
+    arr = buildLiveStatsFromBakugan(baku);
+  }
+  // Overlay del Bakugan seleccionado (hostBpower/guestBpower)
+  const selected = role === 'host' ? d.hostSelected : d.guestSelected;
+  if (selected !== null && selected !== undefined && selected >= 0 && selected <= 2) {
+    const curB = role === 'host' ? d.hostBpower : d.guestBpower;
+    const curD = role === 'host' ? d.hostDamage : d.guestDamage;
+    if (curB !== null && curB !== undefined) {
+      const prev = arr[selected] || { form: 'base', formBaseB: 0, formBaseD: 0 };
+      arr[selected] = {
+        ...prev,
+        bpower: parseInt(curB, 10) || 0,
+        damage: (curD !== null && curD !== undefined)
+          ? (parseInt(curD, 10) || 0)
+          : (prev.damage || 0)
+      };
+    }
+  }
+  return arr;
+}
+
+/** Mezcla datos de la sala con el perfil actual (isEvo/isFusion y stats de forma) */
+function mergeBakuganWithProfile(roomList) {
+  const me = getMyPlayer();
+  const profileList = me ? getActiveBakugan(me) : [];
+  return [0, 1, 2].map(i => {
+    const roomB = (roomList && roomList[i]) || {};
+    const profB = profileList[i] || {};
+    return {
+      ...roomB,
+      name: roomB.name || profB.name || '',
+      bpower: (roomB.bpower != null && roomB.bpower !== '') ? roomB.bpower : (profB.bpower || ''),
+      damage: (roomB.damage != null && roomB.damage !== '') ? roomB.damage : (profB.damage || ''),
+      faction: roomB.faction || profB.faction || '',
+      faction2: profB.faction2 || roomB.faction2 || '',
+      isFusion: !!(profB.isFusion || roomB.isFusion),
+      isEvo: !!(profB.isEvo || roomB.isEvo),
+      fusionBpower: profB.fusionBpower || roomB.fusionBpower || '',
+      fusionDamage: profB.fusionDamage || roomB.fusionDamage || '',
+      evoBpower: profB.evoBpower || roomB.evoBpower || '',
+      evoDamage: profB.evoDamage || roomB.evoDamage || ''
+    };
+  });
+}
+
+function formLabel(form) {
+  if (form === 'fusion') return 'Fusión';
+  if (form === 'evo') return 'Evo';
+  if (form === 'gear') return 'Baku-Gear';
+  if (form === 'doublegear') return '2º Gear';
+  return 'Base';
+}
+
+function formBadgeHtml(form) {
+  if (!form || form === 'base') return '';
+  const icons = {
+    fusion: 'logo_fusion.png',
+    evo: 'logo_diamante.png',
+    gear: 'logo_bakugear.png',
+    doublegear: 'logo_doble_bakugear.png'
+  };
+  const src = icons[form];
+  const label = formLabel(form);
+  if (!src) return `<span style="font-size:0.6rem;color:#ffaa00;">${label}</span>`;
+  return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.6rem;color:#ffaa00;">
+    <img src="${src}" style="width:14px;height:14px;object-fit:contain;" onerror="this.style.display='none'" />${label}
+  </span>`;
+}
+
+function askUseGears() {
+  return confirm('¿Usás Baku-Gear / Segundo Baku-Gear en esta partida?\n\nSi aceptás, vas a poder activarlos en cada Bakugan.');
+}
+
+async function applyBakuganForm(index, formType) {
+  if (!activeRoomCode || !duelRole || !currentDuelData) return;
+  const d = currentDuelData;
+  const myBakuRaw = duelRole === 'host' ? (d.hostBakugan || []) : (d.guestBakugan || []);
+  const myBaku = mergeBakuganWithProfile(myBakuRaw);
+  const b = myBaku[index] || {};
+  let liveArr = getLiveStatsArray(d, duelRole);
+  const slot = liveArr[index] || { form: 'base', bpower: 0, damage: 0 };
+
+  let newB = 0;
+  let newD = 0;
+  let form = formType;
+
+  if (formType === 'fusion') {
+    if (!b.isFusion) {
+      alert('Este Bakugan no tiene Fusión en el perfil.');
+      return;
+    }
+    newB = parseInt(b.fusionBpower, 10) || 0;
+    newD = parseInt(b.fusionDamage, 10) || 0;
+  } else if (formType === 'evo') {
+    if (!b.isEvo) {
+      alert('Este Bakugan no tiene Evo en el perfil.');
+      return;
+    }
+    // Fusión + Evo: primero tiene que estar fusionado
+    if (b.isFusion && slot.form !== 'fusion' && slot.form !== 'evo') {
+      alert('Este Bakugan es Fusión + Evo.\nPrimero activá Fusión, después podés evolucionar.');
+      return;
+    }
+    newB = parseInt(b.evoBpower, 10) || 0;
+    newD = parseInt(b.evoDamage, 10) || 0;
+  } else if (formType === 'gear' || formType === 'doublegear') {
+    const title = formType === 'gear' ? 'Baku-Gear' : 'Segundo Baku-Gear';
+    const bpStr = prompt(
+      `${title}\n\n¿Cuánto B-Power SUMA?\n(Se agrega al valor actual: ${slot.bpower || 0})`,
+      '0'
+    );
+    if (bpStr === null) return;
+    const dmStr = prompt(
+      `${title}\n\n¿Cuánto Daño SUMA?\n(Se agrega al valor actual: ${slot.damage || 0})`,
+      '0'
+    );
+    if (dmStr === null) return;
+    const addB = parseInt(bpStr, 10) || 0;
+    const addD = parseInt(dmStr, 10) || 0;
+    // Gear / 2º Gear suman B-Power Y Daño sobre la forma actual
+    newB = (parseInt(slot.bpower, 10) || 0) + addB;
+    newD = (parseInt(slot.damage, 10) || 0) + addD;
+  } else {
+    // volver a base (negar forma)
+    form = 'base';
+    newB = parseInt(b.bpower, 10) || 0;
+    newD = parseInt(b.damage, 10) || 0;
+  }
+
+  liveArr[index] = {
+    bpower: newB,
+    damage: newD,
+    form: form,
+    formBaseB: newB,
+    formBaseD: newD
+  };
+
+  const updates = duelRole === 'host'
+    ? { hostLiveStats: liveArr, hostSelected: index, hostBpower: newB, hostDamage: newD }
+    : { guestLiveStats: liveArr, guestSelected: index, guestBpower: newB, guestDamage: newD };
+
+  await db.collection('duels').doc(activeRoomCode).update(updates);
+}
+
+async function negateBakuganForm(index) {
+  if (!confirm('¿Negar / destruir la forma activa y volver a stats base del perfil?')) return;
+  await applyBakuganForm(index, 'base');
+}
+
+const FACTION_ICONS = {
+  Pyrus: 'faccion_pyrus.png',
+  Aquos: 'faccion_aquos.png',
+  Ventus: 'faccion_ventus.png',
+  Aurelus: 'faccion_aurelus.png',
+  Haos: 'faccion_haos.png',
+  Darkus: 'faccion_darkus.png',
+  'All-Faction': 'faccion_all-faction.png'
+};
+
+function factionIconHtml(faction, size) {
+  const s = size || 16;
+  if (!faction) return `<span style="opacity:0.5;font-size:0.7rem;">—</span>`;
+  const parts = String(faction).split(/[/+,]| y /i).map(x => x.trim()).filter(Boolean);
+  return parts.map(f => {
+    const key = Object.keys(FACTION_ICONS).find(k => k.toLowerCase() === f.toLowerCase());
+    const src = key ? FACTION_ICONS[key] : null;
+    if (!src) return `<span style="font-size:0.7rem;">${f}</span>`;
+    return `<img src="${src}" alt="${f}" title="${f}" style="width:${s}px;height:${s}px;object-fit:contain;vertical-align:middle;" onerror="this.style.display='none'" />`;
+  }).join(' ');
+}
+
+function bpowerIconHtml(size) {
+  const s = size || 16;
+  return `<img src="simbolo_bpower.png" alt="B-Power" style="width:${s}px;height:${s}px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML='B'" />`;
+}
+
+function damageIconHtml(size) {
+  const s = size || 16;
+  return `<img src="simbolo_dano.png" alt="Daño" style="width:${s}px;height:${s}px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML='DMG'" />`;
+}
+
+function statsLineHtml(bpower, damage, size) {
+  const s = size || 14;
+  return `<span style="display:inline-flex;align-items:center;gap:4px;">${bpowerIconHtml(s)} ${bpower}</span>
+    <span style="opacity:0.35;margin:0 2px;">|</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;">${damageIconHtml(s)} ${damage}</span>`;
+}
+
 function openDuelModal(targetUserId) {
   if (!currentUserId) {
     alert('Tenés que iniciar sesión para duelar.');
@@ -3672,17 +4147,21 @@ async function createDuelRoom() {
   }
 
   ensurePlayerDecks(me);
+  const hostBaku = getActiveBakugan(me);
+  const hostUseGears = askUseGears();
   const code = 'SALA-' + Math.floor(1000 + Math.random() * 9000);
   const room = {
     hostId: currentUserId,
     hostNick: me.nick || 'Brawler',
     hostAvatar: me.avatar || AVATARS[0],
-    hostBakugan: getActiveBakugan(me),
+    hostBakugan: hostBaku,
     hostDeckName: getActiveDeckName(me),
     hostDeck: 50,
     hostSelected: null,
     hostBpower: 0,
     hostDamage: 0,
+    hostLiveStats: buildLiveStatsFromBakugan(hostBaku),
+    hostUseGears: !!hostUseGears,
     guestId: null,
     guestNick: null,
     guestAvatar: null,
@@ -3692,10 +4171,12 @@ async function createDuelRoom() {
     guestSelected: null,
     guestBpower: 0,
     guestDamage: 0,
+    guestLiveStats: [],
+    guestUseGears: false,
     status: 'waiting',
     initialDrawDone: false,
     turn: 1,
-    priorityRole: null, // 'host' | 'guest' — se define 50/50 al conectar ambos
+    priorityRole: null,
     createdAt: Date.now()
   };
 
@@ -3766,13 +4247,17 @@ async function joinDuelRoom() {
 
     // Unirse como guest + prioridad 50/50 al inicio
     ensurePlayerDecks(me);
+    const guestBaku = getActiveBakugan(me);
+    const guestUseGears = askUseGears();
     const priorityRole = Math.random() < 0.5 ? 'host' : 'guest';
     await ref.update({
       guestId: currentUserId,
       guestNick: me.nick || 'Brawler',
       guestAvatar: me.avatar || AVATARS[0],
-      guestBakugan: getActiveBakugan(me),
+      guestBakugan: guestBaku,
       guestDeckName: getActiveDeckName(me),
+      guestLiveStats: buildLiveStatsFromBakugan(guestBaku),
+      guestUseGears: !!guestUseGears,
       status: 'ready',
       priorityRole: priorityRole,
       turn: 1
@@ -3838,7 +4323,8 @@ function renderDuelUI(d) {
   const oppDeck = iAmHost ? d.guestDeck : d.hostDeck;
   const myNick = iAmHost ? d.hostNick : d.guestNick;
   const oppNick = iAmHost ? d.guestNick : d.hostNick;
-  const myBaku = iAmHost ? (d.hostBakugan || []) : (d.guestBakugan || []);
+  const myBakuRaw = iAmHost ? (d.hostBakugan || []) : (d.guestBakugan || []);
+  const myBaku = mergeBakuganWithProfile(myBakuRaw);
   const myDeckName = iAmHost ? (d.hostDeckName || 'Deck activo') : (d.guestDeckName || 'Deck activo');
   const mySelected = iAmHost ? d.hostSelected : d.guestSelected;
   const myBpower = iAmHost ? d.hostBpower : d.guestBpower;
@@ -3876,68 +4362,151 @@ function renderDuelUI(d) {
 
   // Botón mano inicial / robar
   const btn = document.getElementById('btn-main-action');
+  const btnLabel = document.getElementById('btn-main-action-label');
   const nextTurnBtn = document.getElementById('btn-next-turn');
   if (d.initialDrawDone) {
-    btn.textContent = '🔄 Robar carta (-1 a ambos)';
-    btn.style.background = 'linear-gradient(45deg, #00f0ff, #0055ff)';
-    if (nextTurnBtn) nextTurnBtn.style.display = 'block';
+    if (btnLabel) btnLabel.textContent = 'Robar carta (-1 a ambos)';
+    else if (btn) btn.textContent = 'Robar carta (-1 a ambos)';
+    if (btn) btn.style.background = 'linear-gradient(45deg, #00f0ff, #0055ff)';
+    if (nextTurnBtn) {
+      nextTurnBtn.style.display = 'block';
+      const iHavePriority = d.priorityRole === duelRole;
+      nextTurnBtn.disabled = !iHavePriority;
+      nextTurnBtn.style.opacity = iHavePriority ? '1' : '0.45';
+      nextTurnBtn.textContent = iHavePriority
+        ? '⏭ Pasar prioridad al rival'
+        : '⏳ Esperando que el rival pase prioridad';
+    }
   } else {
-    btn.textContent = '🎴 Robar Mano Inicial (-6)';
-    btn.style.background = 'linear-gradient(45deg, #ff9900, #ff0055)';
+    if (btnLabel) btnLabel.textContent = 'Robar Mano Inicial (-6)';
+    else if (btn) btn.textContent = 'Robar Mano Inicial (-6)';
+    if (btn) btn.style.background = 'linear-gradient(45deg, #ff9900, #ff0055)';
     if (nextTurnBtn) nextTurnBtn.style.display = 'none';
   }
 
-  // Lista de mis Bakugan (del deck activo cargado en la sala)
+  const myLive = getLiveStatsArray(d, iAmHost ? 'host' : 'guest');
+  const oppLive = getLiveStatsArray(d, iAmHost ? 'guest' : 'host');
+  const oppRole = iAmHost ? 'guest' : 'host';
+
+  const myUseGears = iAmHost ? !!d.hostUseGears : !!d.guestUseGears;
+
+  // Lista de mis Bakugan — stats en vivo + formas
   const list = document.getElementById('my-bakugan-list');
   list.innerHTML = '';
   [0, 1, 2].forEach((i) => {
     const b = myBaku[i] || {};
+    const live = myLive[i] || { bpower: 0, damage: 0, form: 'base', formBaseB: 0, formBaseD: 0 };
     const name = b.name || `Bakugan #${i + 1}`;
     const selected = mySelected === i;
+    const baseB = parseInt(b.bpower, 10) || 0;
+    const baseD = parseInt(b.damage, 10) || 0;
+    const formBaseB = live.formBaseB != null ? live.formBaseB : baseB;
+    const formBaseD = live.formBaseD != null ? live.formBaseD : baseD;
+    const modified = (live.bpower !== formBaseB) || (live.damage !== formBaseD);
+    const facStr = (live.form === 'fusion' && b.faction2)
+      ? `${b.faction}/${b.faction2}`
+      : b.faction;
+
+    const formBtns = [];
+    if (b.isFusion) {
+      formBtns.push(`<button type="button" class="btn btn-sm" data-form="fusion" data-idx="${i}" style="padding:4px 6px;min-width:auto;display:inline-flex;align-items:center;gap:3px;border-color:var(--neon-magenta);color:var(--neon-magenta);">
+        <img src="logo_fusion.png" style="width:14px;height:14px;object-fit:contain;" onerror="this.style.display='none'" />Fusión
+      </button>`);
+    }
+    if (b.isEvo) {
+      formBtns.push(`<button type="button" class="btn btn-sm" data-form="evo" data-idx="${i}" style="padding:4px 6px;min-width:auto;display:inline-flex;align-items:center;gap:3px;border-color:#ffaa00;color:#ffcc55;">
+        <img src="logo_diamante.png" style="width:14px;height:14px;object-fit:contain;" onerror="this.style.display='none'" />Evo
+      </button>`);
+    }
+    if (myUseGears) {
+      formBtns.push(`<button type="button" class="btn btn-sm" data-form="gear" data-idx="${i}" style="padding:4px 6px;min-width:auto;display:inline-flex;align-items:center;gap:3px;">
+        <img src="logo_bakugear.png" style="width:14px;height:14px;object-fit:contain;" onerror="this.style.display='none'" />Gear
+      </button>`);
+      formBtns.push(`<button type="button" class="btn btn-sm" data-form="doublegear" data-idx="${i}" style="padding:4px 6px;min-width:auto;display:inline-flex;align-items:center;gap:3px;">
+        <img src="logo_doble_bakugear.png" style="width:14px;height:14px;object-fit:contain;" onerror="this.style.display='none'" />2º Gear
+      </button>`);
+    }
+    if (live.form && live.form !== 'base') {
+      formBtns.push(`<button type="button" class="btn btn-sm btn-danger" data-form="base" data-idx="${i}" style="padding:4px 6px;min-width:auto;font-size:0.6rem;">Negar</button>`);
+    }
+
     const div = document.createElement('div');
-    div.style.cssText = `background:rgba(0,20,40,0.6); border:1px solid ${selected ? 'var(--neon-cyan)' : 'rgba(0,240,255,0.2)'}; border-radius:8px; padding:8px 10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;`;
+    div.style.cssText = `background:rgba(0,20,40,0.6); border:1px solid ${selected ? 'var(--neon-cyan)' : 'rgba(0,240,255,0.2)'}; border-radius:8px; padding:8px 10px;`;
     if (selected) div.style.boxShadow = '0 0 12px rgba(0,240,255,0.35)';
     div.innerHTML = `
-      <div>
-        <strong style="color:${selected ? 'var(--neon-cyan)' : '#fff'};">${name}</strong>
-        <span style="font-size:0.7rem; opacity:0.7; margin-left:6px;">${b.faction || ''}</span>
-        <div style="font-size:0.75rem; color:var(--neon-cyan);">⚡ ${b.bpower || 0} | 💥 ${b.damage || 0}</div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; cursor:pointer;" data-select="${i}">
+        <div style="min-width:0;flex:1;">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <strong style="color:${selected ? 'var(--neon-cyan)' : '#fff'};">${name}</strong>
+            ${factionIconHtml(facStr, 18)}
+            ${formBadgeHtml(live.form)}
+          </div>
+          <div style="font-size:0.8rem; color:var(--neon-cyan); margin-top:4px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            ${statsLineHtml(live.bpower, live.damage, 15)}
+            ${modified ? '<span style="color:#ffaa00;font-size:0.65rem;">(mod)</span>' : ''}
+          </div>
+          <div style="font-size:0.65rem; opacity:0.45; margin-top:2px; display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+            ${live.form && live.form !== 'base' ? formLabel(live.form) + ':' : 'Base:'} ${statsLineHtml(formBaseB, formBaseD, 12)}
+          </div>
+        </div>
+        <span style="font-size:0.7rem; color:var(--neon-magenta); flex-shrink:0;">${selected ? 'EN CAMPO' : 'Elegir'}</span>
       </div>
-      <span style="font-size:0.7rem; color:var(--neon-magenta);">${selected ? 'EN CAMPO' : 'Elegir'}</span>
+      ${formBtns.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;" data-forms="${i}">${formBtns.join('')}</div>` : ''}
     `;
-    div.onclick = () => selectMyBakugan(i);
+    const selectArea = div.querySelector('[data-select]');
+    if (selectArea) selectArea.onclick = () => selectMyBakugan(i);
+    div.querySelectorAll('[data-form]').forEach(btn => {
+      btn.onclick = (ev) => {
+        ev.stopPropagation();
+        const f = btn.getAttribute('data-form');
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (f === 'base') negateBakuganForm(idx);
+        else applyBakuganForm(idx, f);
+      };
+    });
     list.appendChild(div);
   });
 
-  const center = document.getElementById('arena-center-card');
+  // Panel comparativa VOS
   const controls = document.getElementById('arena-stat-controls');
+  const myNameEl = document.getElementById('arena-my-name');
+  const myFacEl = document.getElementById('arena-my-faction');
   if (mySelected !== null && mySelected !== undefined && myBaku[mySelected]) {
     const b = myBaku[mySelected];
-    center.innerHTML = `
-      <div style="font-family:'Orbitron'; font-size:1.1rem; color:var(--neon-cyan);">${b.name || 'Bakugan'}</div>
-      <div style="font-size:0.8rem; opacity:0.8;">${b.faction || 'Sin facción'}</div>
-      <div style="font-size:0.75rem; margin-top:4px;">Base: ⚡ ${b.bpower || 0} | 💥 ${b.damage || 0}</div>
-    `;
-    controls.style.display = 'block';
-    document.getElementById('arena-bpower').textContent = myBpower ?? (b.bpower || 0);
-    document.getElementById('arena-damage').textContent = myDamage ?? (b.damage || 0);
+    const live = myLive[mySelected] || { bpower: 0, damage: 0, form: 'base' };
+    const facStr = (live.form === 'fusion' && b.faction2) ? `${b.faction}/${b.faction2}` : b.faction;
+    if (myNameEl) myNameEl.innerHTML = (b.name || 'Bakugan') + (live.form && live.form !== 'base' ? ' ' + formBadgeHtml(live.form) : '');
+    if (myFacEl) myFacEl.innerHTML = factionIconHtml(facStr, 20);
+    document.getElementById('arena-bpower').textContent = live.bpower;
+    document.getElementById('arena-damage').textContent = live.damage;
+    if (controls) controls.style.display = 'block';
   } else {
-    center.innerHTML = `<div style="opacity:0.5; font-size:0.85rem;">Seleccioná uno de tus Bakugan abajo</div>`;
-    controls.style.display = 'none';
+    if (myNameEl) myNameEl.textContent = '—';
+    if (myFacEl) myFacEl.textContent = 'Elegí un Bakugan';
+    document.getElementById('arena-bpower').textContent = '0';
+    document.getElementById('arena-damage').textContent = '0';
+    if (controls) controls.style.display = 'none';
   }
 
-  const oppBox = document.getElementById('opp-bakugan-display');
+  // Panel comparativa RIVAL (arriba, al lado)
+  // Fuente de verdad: campos hostBpower/guestBpower del snapshot (siempre actualizados)
+  const oppNameEl = document.getElementById('arena-opp-name');
+  const oppFacEl = document.getElementById('arena-opp-faction');
   if (oppSelected !== null && oppSelected !== undefined && oppBaku[oppSelected]) {
     const b = oppBaku[oppSelected];
-    oppBox.innerHTML = `
-      <strong style="color:var(--neon-magenta);">${b.name || 'Bakugan'}</strong>
-      <span style="opacity:0.7;"> (${b.faction || '?'})</span><br>
-      <span style="color:var(--neon-cyan);">⚡ ${oppBpower ?? b.bpower ?? 0}</span>
-      &nbsp;|&nbsp;
-      <span style="color:#ff6688;">💥 ${oppDamage ?? b.damage ?? 0}</span>
-    `;
+    const live = oppLive[oppSelected] || { bpower: 0, damage: 0, form: 'base' };
+    const showB = (oppBpower !== null && oppBpower !== undefined) ? oppBpower : live.bpower;
+    const showD = (oppDamage !== null && oppDamage !== undefined) ? oppDamage : live.damage;
+    const facStr = (live.form === 'fusion' && b.faction2) ? `${b.faction}/${b.faction2}` : b.faction;
+    if (oppNameEl) oppNameEl.innerHTML = (b.name || 'Bakugan') + (live.form && live.form !== 'base' ? ' ' + formBadgeHtml(live.form) : '');
+    if (oppFacEl) oppFacEl.innerHTML = factionIconHtml(facStr, 20);
+    document.getElementById('arena-opp-bpower').textContent = showB;
+    document.getElementById('arena-opp-damage').textContent = showD;
   } else {
-    oppBox.innerHTML = `<span style="opacity:0.6;">Esperando selección del rival...</span>`;
+    if (oppNameEl) oppNameEl.textContent = '—';
+    if (oppFacEl) oppFacEl.textContent = 'Esperando...';
+    document.getElementById('arena-opp-bpower').textContent = '0';
+    document.getElementById('arena-opp-damage').textContent = '0';
   }
 
   // Fin de partida: vida en -1 o menos (0 todavía juega)
@@ -3948,16 +4517,24 @@ function renderDuelUI(d) {
 
 async function selectMyBakugan(index) {
   if (!activeRoomCode || !duelRole || !currentDuelData) return;
-  const myBaku = duelRole === 'host'
-    ? (currentDuelData.hostBakugan || [])
-    : (currentDuelData.guestBakugan || []);
-  const baku = myBaku[index] || {};
-  const baseB = parseInt(baku.bpower, 10) || 0;
-  const baseD = parseInt(baku.damage, 10) || 0;
+  const d = currentDuelData;
+  const myBaku = duelRole === 'host' ? (d.hostBakugan || []) : (d.guestBakugan || []);
+  const liveKey = duelRole === 'host' ? 'hostLiveStats' : 'guestLiveStats';
+  let liveArr = getLiveStatsArray(d, duelRole);
 
+  // Si ese slot aún no tiene live stats, inicializar desde base del perfil
+  if (!liveArr[index] || (liveArr[index].bpower == null && liveArr[index].damage == null)) {
+    const baku = myBaku[index] || {};
+    liveArr[index] = {
+      bpower: parseInt(baku.bpower, 10) || 0,
+      damage: parseInt(baku.damage, 10) || 0
+    };
+  }
+
+  const live = liveArr[index];
   const updates = duelRole === 'host'
-    ? { hostSelected: index, hostBpower: baseB, hostDamage: baseD }
-    : { guestSelected: index, guestBpower: baseB, guestDamage: baseD };
+    ? { hostSelected: index, hostBpower: live.bpower, hostDamage: live.damage, hostLiveStats: liveArr }
+    : { guestSelected: index, guestBpower: live.bpower, guestDamage: live.damage, guestLiveStats: liveArr };
 
   await db.collection('duels').doc(activeRoomCode).update(updates);
 }
@@ -3973,12 +4550,54 @@ async function syncUpdateDeck(delta) {
 
 async function syncUpdateStat(stat, delta) {
   if (!activeRoomCode || !duelRole || !currentDuelData) return;
-  const field = duelRole === 'host'
-    ? (stat === 'bpower' ? 'hostBpower' : 'hostDamage')
-    : (stat === 'bpower' ? 'guestBpower' : 'guestDamage');
-  const current = currentDuelData[field] ?? 0;
-  const next = Math.max(0, current + delta);
-  await db.collection('duels').doc(activeRoomCode).update({ [field]: next });
+  const d = currentDuelData;
+  const selected = duelRole === 'host' ? d.hostSelected : d.guestSelected;
+  if (selected === null || selected === undefined) {
+    alert('Primero seleccioná un Bakugan de tu equipo.');
+    return;
+  }
+
+  const liveKey = duelRole === 'host' ? 'hostLiveStats' : 'guestLiveStats';
+  let liveArr = getLiveStatsArray(d, duelRole);
+  const slot = liveArr[selected] || { bpower: 0, damage: 0 };
+  if (stat === 'bpower') {
+    slot.bpower = Math.max(0, (slot.bpower || 0) + delta);
+  } else {
+    slot.damage = Math.max(0, (slot.damage || 0) + delta);
+  }
+  liveArr[selected] = slot;
+
+  const updates = duelRole === 'host'
+    ? { hostLiveStats: liveArr, hostBpower: slot.bpower, hostDamage: slot.damage }
+    : { guestLiveStats: liveArr, guestBpower: slot.bpower, guestDamage: slot.damage };
+
+  await db.collection('duels').doc(activeRoomCode).update(updates);
+}
+
+/** Pierde la ronda → vuelve a stats de la FORMA activa (no quita Fusión/Evo/Gear) */
+async function resetActiveBakuganToBase() {
+  if (!activeRoomCode || !duelRole || !currentDuelData) return;
+  const d = currentDuelData;
+  const selected = duelRole === 'host' ? d.hostSelected : d.guestSelected;
+  if (selected === null || selected === undefined) {
+    alert('No hay Bakugan activo para resetear.');
+    return;
+  }
+  let liveArr = getLiveStatsArray(d, duelRole);
+  const slot = liveArr[selected] || { form: 'base', formBaseB: 0, formBaseD: 0 };
+  const formBaseB = slot.formBaseB != null ? slot.formBaseB : (slot.bpower || 0);
+  const formBaseD = slot.formBaseD != null ? slot.formBaseD : (slot.damage || 0);
+  liveArr[selected] = {
+    ...slot,
+    bpower: formBaseB,
+    damage: formBaseD
+  };
+
+  const updates = duelRole === 'host'
+    ? { hostLiveStats: liveArr, hostBpower: formBaseB, hostDamage: formBaseD }
+    : { guestLiveStats: liveArr, guestBpower: formBaseB, guestDamage: formBaseD };
+
+  await db.collection('duels').doc(activeRoomCode).update(updates);
 }
 
 async function handleMainActionButton() {
@@ -4000,8 +4619,13 @@ async function handleMainActionButton() {
 }
 
 async function advanceDuelTurn() {
-  if (!activeRoomCode || !currentDuelData) return;
+  if (!activeRoomCode || !currentDuelData || !duelRole) return;
   const d = currentDuelData;
+  // Solo quien tiene la prioridad puede pasarla
+  if (d.priorityRole && d.priorityRole !== duelRole) {
+    alert('No tenés la prioridad. Tenés que esperar a que el rival te la pase.');
+    return;
+  }
   const nextTurn = (d.turn || 1) + 1;
   const nextPrio = d.priorityRole === 'host' ? 'guest' : 'host';
   await db.collection('duels').doc(activeRoomCode).update({
@@ -4010,10 +4634,26 @@ async function advanceDuelTurn() {
   });
 }
 
+/** SALIR: si hay combate activo, cuenta como abandono (-50 / +25) */
+async function requestLeaveDuel() {
+  if (!activeRoomCode) {
+    closeDuelScreen();
+    return;
+  }
+  const d = currentDuelData;
+  const inActiveFight = d && d.hostId && d.guestId && d.status !== 'ended';
+  if (inActiveFight) {
+    if (!confirm('¿Salir de la partida?\n\nCuenta como abandono:\n• Vos: -50 puntos\n• Rival: +25 puntos')) return;
+    await handleDuelEnd('forfeit_loss');
+    return;
+  }
+  // Sala de espera o sin rival: salir sin penalidad
+  await leaveDuelRoom(false);
+}
+
 async function forfeitDuel() {
-  if (!activeRoomCode || !currentDuelData || currentDuelData.status === 'ended') return;
-  if (!confirm('¿Abandonar la partida?\n\n• Vos: -50 puntos\n• Rival: +25 puntos')) return;
-  await handleDuelEnd('forfeit_loss');
+  // Compat: mismo flujo que salir en combate
+  await requestLeaveDuel();
 }
 
 async function applyMatchResult(player, kind) {
@@ -4087,6 +4727,7 @@ async function leaveDuelRoom(silent) {
 }
 /* ================= INICIALIZACIÓN ================= */
 window.addEventListener('DOMContentLoaded', () => {
+  buildBakuganEditorsHtml();
   listenToDatabase();
   applyVolumeToAudios();
   document.body.classList.add('visitor-mode');
