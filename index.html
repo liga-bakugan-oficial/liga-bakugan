@@ -1141,7 +1141,7 @@
     text-align: center;
   }
   .damage-clock-panel.active {
-    display: block;
+    display: none !important;
   }
   .damage-clock-title {
     font-family: 'Orbitron', sans-serif;
@@ -1212,7 +1212,7 @@
     letter-spacing: 1px;
   }
   .damage-stop-btn.visible {
-    display: flex !important;
+    display: none !important;
   }
   .damage-stop-btn img,
   .deck-stop-btn img {
@@ -1235,7 +1235,7 @@
     letter-spacing: 1px;
   }
   .deck-stop-btn.visible {
-    display: flex !important;
+    display: none !important;
   }
   .deck-life-tick {
     animation: deckPulse 0.45s ease;
@@ -4507,9 +4507,16 @@ function recalculatePoints(player) {
 }
 
 
-/** Calcula el bonus real de un Bakucore según forma y facción del Bakugan activo */
-function computeBakucoreBonus(core, baku, liveForm) {
-  if (!core || !core.type) return { bpower: 0, damage: 0, energyDelta: 0, tags: [] };
+/** Calcula el bonus real de un Bakucore según forma y facción del Bakugan que LO RECIBE (activo).
+ *  - bpower / damage (efecto base) → SIEMPRE
+ *  - factionBpower / factionDamage → solo si el Bakugan activo cumple restrictFaction
+ *  - fusionBpower / fusionDamage → solo en forma fusión
+ */
+function computeBakucoreBonus(core, targetBaku, liveForm) {
+  if (!core || !core.type) {
+    return { bpower: 0, damage: 0, energyDelta: 0, tags: [], restricted: false, factionMatch: true };
+  }
+
   let b = parseInt(core.bpower, 10) || 0;
   let d = parseInt(core.damage, 10) || 0;
   let e = parseInt(core.energyDelta, 10) || 0;
@@ -4517,22 +4524,39 @@ function computeBakucoreBonus(core, baku, liveForm) {
 
   const form = (liveForm || 'base');
   if (form === 'fusion') {
-    b += parseInt(core.fusionBpower, 10) || 0;
-    d += parseInt(core.fusionDamage, 10) || 0;
-    if ((parseInt(core.fusionBpower, 10) || 0) || (parseInt(core.fusionDamage, 10) || 0)) tags.push('F');
+    const fb = parseInt(core.fusionBpower, 10) || 0;
+    const fd = parseInt(core.fusionDamage, 10) || 0;
+    b += fb;
+    d += fd;
+    if (fb || fd) tags.push('F');
   }
 
-  const facs = [baku && baku.faction, baku && baku.faction2].filter(Boolean).map(x => String(x).toLowerCase());
-  if (form === 'fusion' && baku && baku.faction2) {
-    // ya incluido faction2
-  }
-  const need = [core.restrictFaction, core.restrictFaction2].filter(Boolean).map(x => String(x).toLowerCase());
+  const facs = [targetBaku && targetBaku.faction, targetBaku && targetBaku.faction2]
+    .filter(Boolean)
+    .map(x => String(x).toLowerCase());
+  const need = [core.restrictFaction, core.restrictFaction2]
+    .filter(Boolean)
+    .map(x => String(x).toLowerCase());
+
+  const facB = parseInt(core.factionBpower, 10) || 0;
+  const facD = parseInt(core.factionDamage, 10) || 0;
+  let factionMatch = true;
+
   if (need.length) {
-    const match = need.some(n => facs.includes(n));
-    if (match) {
-      b += parseInt(core.factionBpower, 10) || 0;
-      d += parseInt(core.factionDamage, 10) || 0;
-      tags.push('FAC');
+    factionMatch = need.some(n => facs.includes(n));
+    // Solo los bonos de FACCIÓN se condicionan; el efecto base ya está en b/d
+    if (factionMatch) {
+      b += facB;
+      d += facD;
+      if (facB || facD) tags.push('FAC');
+    } else if (facB || facD) {
+      tags.push('NO-FAC');
+    }
+  } else {
+    // Sin restricción: si cargaron valores en campos de facción, se suman igual
+    if (facB || facD) {
+      b += facB;
+      d += facD;
     }
   }
 
@@ -4541,7 +4565,16 @@ function computeBakucoreBonus(core, baku, liveForm) {
   if (core.doubleStrike) tags.push('Double');
   if (core.requiresGear || e) tags.push('Gear');
 
-  return { bpower: b, damage: d, energyDelta: e, tags };
+  return {
+    bpower: b,
+    damage: d,
+    energyDelta: e,
+    tags,
+    restricted: need.length > 0,
+    factionMatch,
+    factionBonusB: factionMatch ? facB : 0,
+    factionBonusD: factionMatch ? facD : 0
+  };
 }
 
 function emptyBakucore() {
@@ -4550,6 +4583,9 @@ function emptyBakucore() {
     bpower: '',
     damage: '',
     fusionBpower: '',
+    fusionDamage: '',
+    factionBpower: '',
+    factionDamage: '',
     restrictFaction: '',
     restrictFaction2: '',
     requiresFusion: false,
@@ -4557,7 +4593,8 @@ function emptyBakucore() {
     shadowStrike: false,
     frostStrike: false,
     frostValue: '',
-    doubleStrike: false
+    doubleStrike: false,
+    energyDelta: ''
   };
 }
 
@@ -4588,6 +4625,9 @@ function normalizeBakucores(list) {
       bpower: c.bpower || '',
       damage: c.damage || '',
       fusionBpower: c.fusionBpower || '',
+      fusionDamage: c.fusionDamage || '',
+      factionBpower: c.factionBpower || '',
+      factionDamage: c.factionDamage || '',
       restrictFaction: c.restrictFaction || '',
       restrictFaction2: c.restrictFaction2 || '',
       requiresFusion: !!c.requiresFusion,
@@ -4595,7 +4635,8 @@ function normalizeBakucores(list) {
       shadowStrike: !!c.shadowStrike,
       frostStrike: !!c.frostStrike,
       frostValue: c.frostValue || '',
-      doubleStrike: !!c.doubleStrike
+      doubleStrike: !!c.doubleStrike,
+      energyDelta: c.energyDelta || ''
     };
   });
 }
@@ -6688,11 +6729,30 @@ function mergeBakuganWithProfile(roomList) {
       fusionDamage: profB.fusionDamage || roomB.fusionDamage || '',
       evoBpower: profB.evoBpower || roomB.evoBpower || '',
       evoDamage: profB.evoDamage || roomB.evoDamage || '',
-      bakucores: normalizeBakucores(
-        (Array.isArray(roomB.bakucores) && roomB.bakucores.some(c => c && c.type))
-          ? roomB.bakucores
-          : (profB.bakucores || [])
-      )
+      bakucores: mergeBakucoreLists(roomB.bakucores, profB.bakucores)
+    };
+  });
+}
+
+/** Une cores de sala + perfil: no pierde factionBpower/factionDamage si la sala es vieja */
+function mergeBakucoreLists(roomCores, profCores) {
+  const room = normalizeBakucores(roomCores);
+  const prof = normalizeBakucores(profCores);
+  const roomHas = room.some(c => c && c.type);
+  if (!roomHas) return prof;
+  return room.map((rc, i) => {
+    const pc = prof[i] || emptyBakucore();
+    if (!rc.type && pc.type) return { ...pc };
+    return {
+      ...rc,
+      // Completar campos de facción/fusión si faltan en la sala
+      factionBpower: (rc.factionBpower !== '' && rc.factionBpower != null) ? rc.factionBpower : (pc.factionBpower || ''),
+      factionDamage: (rc.factionDamage !== '' && rc.factionDamage != null) ? rc.factionDamage : (pc.factionDamage || ''),
+      fusionBpower: (rc.fusionBpower !== '' && rc.fusionBpower != null) ? rc.fusionBpower : (pc.fusionBpower || ''),
+      fusionDamage: (rc.fusionDamage !== '' && rc.fusionDamage != null) ? rc.fusionDamage : (pc.fusionDamage || ''),
+      restrictFaction: rc.restrictFaction || pc.restrictFaction || '',
+      restrictFaction2: rc.restrictFaction2 || pc.restrictFaction2 || '',
+      energyDelta: (rc.energyDelta !== '' && rc.energyDelta != null) ? rc.energyDelta : (pc.energyDelta || '')
     };
   });
 }
@@ -6772,7 +6832,7 @@ function sumAppliedCoreBonus(appliedCores) {
 }
 
 /** Recalcula montos de cores ya aplicados según forma actual (activa F: / facción) */
-function recalcAppliedCoresForForm(appliedCores, myBakuList, form) {
+function recalcAppliedCoresForForm(appliedCores, myBakuList, form, holderBaku) {
   const map = appliedCores && typeof appliedCores === 'object' ? appliedCores : {};
   const next = {};
   let hostList = null;
@@ -6789,6 +6849,9 @@ function recalcAppliedCoresForForm(appliedCores, myBakuList, form) {
       return { ...b, bakucores: normalizeBakucores(b.bakucores) };
     });
   }
+  // Bakugan que tiene los cores aplicados (para restricción de facción)
+  const targetForFaction = holderBaku || null;
+
   Object.keys(map).forEach(key => {
     const parts = String(key).split('_');
     let bi, cs, ownerRole = null;
@@ -6797,7 +6860,6 @@ function recalcAppliedCoresForForm(appliedCores, myBakuList, form) {
       bi = parseInt(parts[1], 10);
       cs = parseInt(parts[2], 10);
     } else if (parts[0] === 'mine' || parts[0] === 'opp') {
-      // compat relativa
       const fromOpp = parts[0] === 'opp';
       ownerRole = duelRole
         ? (fromOpp ? (duelRole === 'host' ? 'guest' : 'host') : duelRole)
@@ -6816,14 +6878,16 @@ function recalcAppliedCoresForForm(appliedCores, myBakuList, form) {
     let list = myBakuList;
     if (ownerRole === 'host' && hostList) list = hostList;
     else if (ownerRole === 'guest' && guestList) list = guestList;
-    const baku = (list && list[bi]) || {};
-    const cores = normalizeBakucores(baku.bakucores);
+    const sourceBaku = (list && list[bi]) || {};
+    const cores = normalizeBakucores(sourceBaku.bakucores);
     const core = cores[cs - 1];
     if (!core || !core.type) {
       next[key] = map[key];
       return;
     }
-    const bonus = computeBakucoreBonus(core, baku, form);
+    // Facción del receptor (holder), no del dueño del core en la Matrix
+    const forFaction = targetForFaction || sourceBaku;
+    const bonus = computeBakucoreBonus(core, forFaction, form);
     const prev = map[key] || {};
     next[key] = {
       bpower: bonus.bpower || 0,
@@ -6831,7 +6895,7 @@ function recalcAppliedCoresForForm(appliedCores, myBakuList, form) {
       energyDelta: bonus.energyDelta || 0,
       fromOpp: !!prev.fromOpp,
       ownerRole: prev.ownerRole || ownerRole || '',
-      sourceName: prev.sourceName || baku.name || '',
+      sourceName: prev.sourceName || sourceBaku.name || '',
       coreType: prev.coreType || core.type || ''
     };
   });
@@ -6901,7 +6965,7 @@ async function applyBakuganForm(index, formType) {
   }
 
   // Recalcular cores con la nueva forma (F: y facción actualizados)
-  const appliedCores = recalcAppliedCoresForForm(oldApplied, myBaku, form);
+  const appliedCores = recalcAppliedCoresForForm(oldApplied, myBaku, form, b);
   const coreSum = sumAppliedCoreBonus(appliedCores);
   // Nueva lectura: base de forma + cores activos + bonos manuales previos
   const newB = Math.max(0, formBaseB + coreSum.bpower + residualB);
@@ -7237,14 +7301,19 @@ function renderMatrixCoreCell(core, baku, live, bakuIdx, coreSlot, isMine, activ
       <div style="font-size:0.55rem;opacity:0.4;">#${bakuIdx + 1}.${coreSlot}</div>
     </div>`;
   }
-  // Bonus preview: forma del Bakugan ACTIVO del jugador (si hay)
+  // Bonus preview: facción + forma del Bakugan ACTIVO (quien recibiría el core)
   let form = (live && live.form) || 'base';
+  let targetBaku = baku; // fallback
   if (currentDuelData && duelRole) {
+    const iAmHost = duelRole === 'host';
     const myLive = getLiveStatsArray(currentDuelData, duelRole);
-    const sel = duelRole === 'host' ? currentDuelData.hostSelected : currentDuelData.guestSelected;
+    const sel = iAmHost ? currentDuelData.hostSelected : currentDuelData.guestSelected;
     if (sel != null && myLive[sel] && myLive[sel].form) form = myLive[sel].form;
+    const myRaw = iAmHost ? (currentDuelData.hostBakugan || []) : (currentDuelData.guestBakugan || []);
+    const myList = mergeBakuganWithProfile(myRaw);
+    if (sel != null && myList[sel]) targetBaku = myList[sel];
   }
-  const bonus = computeBakucoreBonus(core, baku, form);
+  const bonus = computeBakucoreBonus(core, targetBaku, form);
   const fromOpp = !isMine;
   const key = matrixCoreKey(bakuIdx, coreSlot, fromOpp);
 
@@ -7384,7 +7453,14 @@ async function toggleApplyMatrixCore(bakuIdx, coreSlot, fromOpp) {
 
   const applied = { ...(slot.appliedCores || {}) };
   const form = slot.form || 'base';
-  const bonus = computeBakucoreBonus(core, sourceBaku, form);
+  // Importante: la restricción de facción se evalúa con el Bakugan ACTIVO (quien recibe el core)
+  const myBakuForBonus = mergeBakuganWithProfile(
+    duelRole === 'host' ? (d.hostBakugan || []) : (d.guestBakugan || [])
+  );
+  const activeBaku = myBakuForBonus[selected] || {};
+  const bonus = computeBakucoreBonus(core, activeBaku, form);
+  // Facción no cumple: se aplica igual el efecto BASE; solo se omiten factionBpower/factionDamage
+  // (sin popup molesto: la Matrix ya muestra NO-FAC cuando corresponde)
 
   if (applied[key]) {
     const prev = applied[key];
@@ -7682,7 +7758,7 @@ function renderDuelUI(d) {
       taBtn.classList.toggle('visible', showTA);
       if (showTA && taLabel) {
         const totalD = [0, 1, 2].reduce((s, i) => s + (parseInt(myLive[i] && myLive[i].damage, 10) || 0), 0);
-        taLabel.textContent = `TEAM ATTACK · ${totalD} DAÑO`;
+        taLabel.textContent = `TEAM ATTACK · ${totalD} ⚔ · liberar`;
       }
     }
   } catch (e) {}
@@ -7877,6 +7953,12 @@ function isDamageResolutionActive(d) {
 
 /** Inicia resolución de daño contra el rival (Firestore + reloj local del atacante) */
 async function startDamageResolution(amount, label) {
+  // Reloj de daño desactivado: el descuento es manual
+  amount = Math.max(0, parseInt(amount, 10) || 0);
+  if (amount > 0) {
+    alert((label || 'Daño') + ': ' + amount + '\n\nDescontá manualmente las cartas del rival con los botones de vida del deck.');
+  }
+  return;
   if (!activeRoomCode || !duelRole || !currentDuelData) return;
   amount = Math.max(0, parseInt(amount, 10) || 0);
   if (amount <= 0) {
@@ -8106,9 +8188,7 @@ async function declareRoundWinner() {
 
   if (slot.deployed) {
     const dmg = parseInt(slot.damage, 10) || 0;
-    if (dmg > 0 && confirm('Este Bakugan ya está desplegado.\n\n¿Declarar su daño (' + dmg + ') con el reloj de 12s por carta?')) {
-      await startDamageResolution(dmg, 'Daño del vencedor');
-    }
+    alert('Este Bakugan ya está desplegado.\nDaño actual: ' + dmg + '\n\nDescontá manualmente las cartas del rival si corresponde.');
     return;
   }
 
@@ -8169,8 +8249,7 @@ async function declareRoundWinner() {
 
   const dmg = parseInt(slot.damage, 10) || 0;
   if (dmg > 0) {
-    const ok = confirm('¡Ronda ganada!\n\nTu Bakugan queda desplegado y el rival devolvió sus cores.\n\nDaño del vencedor: ' + dmg + '\n\n¿Iniciar resolución con reloj?\n(1 daño = 1 carta del rival cada 12 segundos)\nEl rival puede STOP si una carta frena el daño.');
-    if (ok) await startDamageResolution(dmg, 'Daño del vencedor');
+    alert('¡Ronda ganada!\n\nTu Bakugan queda desplegado y el rival devolvió sus cores.\n\nDaño del vencedor: ' + dmg + '\n\nDescontá manualmente las cartas del rival con los botones de vida del deck.');
   } else {
     alert('¡Ronda ganada!\nTu Bakugan queda desplegado y el rival devolvió sus cores a la Matrix.');
   }
@@ -8225,13 +8304,43 @@ async function executeTeamAttack() {
     return;
   }
   const totalD = [0, 1, 2].reduce((sum, i) => sum + (parseInt(liveArr[i] && liveArr[i].damage, 10) || 0), 0);
-  if (totalD <= 0) {
-    alert('El daño total del equipo es 0.');
-    return;
-  }
-  const ok = confirm('TEAM ATTACK\\n\\nDaño total del equipo: ' + totalD + '\\n\\nSe resolverá con el reloj (12s = 1 carta).\\nEl rival puede usar STOP si una carta frena el daño restante.\\n\\n¿Iniciar?');
+  const raw = duelRole === 'host' ? (d.hostBakugan || []) : (d.guestBakugan || []);
+  const detail = [0, 1, 2].map(i => {
+    const n = (raw[i] && raw[i].name) || ('B' + (i + 1));
+    const dm = parseInt(liveArr[i] && liveArr[i].damage, 10) || 0;
+    return n + ': ⚔ ' + dm;
+  }).join('\n');
+
+  const ok = confirm(
+    'TEAM ATTACK\n\n' +
+    detail + '\n\n' +
+    'Daño total: ' + totalD + '\n\n' +
+    'Al confirmar:\n' +
+    '• Se liberan los 3 Bakugans (ya no desplegados)\n' +
+    '• Los Bakucores vuelven a la Matrix\n' +
+    '• Podés seguir lanzando\n\n' +
+    'Descontá el daño del rival de forma manual.\n\n¿Liberar equipo?'
+  );
   if (!ok) return;
-  await startDamageResolution(totalD, 'Team Attack');
+
+  const released = releaseAllDeployedCores(liveArr);
+  const sel = duelRole === 'host' ? d.hostSelected : d.guestSelected;
+  const updates = {};
+  if (duelRole === 'host') {
+    updates.hostLiveStats = released;
+    if (sel != null && released[sel]) {
+      updates.hostBpower = released[sel].bpower;
+      updates.hostDamage = released[sel].damage;
+    }
+  } else {
+    updates.guestLiveStats = released;
+    if (sel != null && released[sel]) {
+      updates.guestBpower = released[sel].bpower;
+      updates.guestDamage = released[sel].damage;
+    }
+  }
+  await db.collection('duels').doc(activeRoomCode).update(updates);
+  alert('Team Attack resuelto.\nDaño total declarado: ' + totalD + '\nEquipo liberado · cores de vuelta a la Matrix.');
 }
 
 async function handleMainActionButton() {
