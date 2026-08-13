@@ -3893,12 +3893,12 @@
               </div>
             </div>
           </div>
-          <button class="btn btn-sm" style="width:100%; margin-top:10px; border-color:#ffaa00; color:#ffcc55;" onclick="markActiveBakuganDeployed()">
-            ✓ Gané la ronda · desplegar (bloquear cores)
+          <button class="btn btn-sm" style="width:100%; margin-top:10px; border-color:#ffaa00; color:#ffcc55;" onclick="declareRoundWinner()">
+            ✓ Declarar vencedor · desplegar y rival pierde la ronda
           </button>
-          <button class="btn btn-sm btn-danger" style="width:100%; margin-top:6px;" onclick="resetActiveBakuganToBase()">
-            ↺ Perdí la ronda · devolver cores
-          </button>
+          <p style="font-size:0.62rem; opacity:0.55; text-align:center; margin-top:6px; line-height:1.35;">
+            Al declarar vencedor se bloquean tus cores, el Bakugan rival activo pierde la ronda y devuelve sus cores a la Matrix.
+          </p>
           <p style="font-size:0.65rem; opacity:0.55; text-align:center; margin-top:6px; line-height:1.3;">
             Fusión / Evo / Gears son permanentes hasta negarlas. Si perdés la ronda, solo se reinician los mods temporales a la forma activa.
           </p>
@@ -6775,34 +6775,51 @@ function sumAppliedCoreBonus(appliedCores) {
 function recalcAppliedCoresForForm(appliedCores, myBakuList, form) {
   const map = appliedCores && typeof appliedCores === 'object' ? appliedCores : {};
   const next = {};
-  // Lista rival (si hay duelo activo) para cores del oponente
-  let oppList = null;
-  if (currentDuelData && duelRole) {
-    const raw = duelRole === 'host' ? (currentDuelData.guestBakugan || []) : (currentDuelData.hostBakugan || []);
-    oppList = [0, 1, 2].map(i => {
-      const b = raw[i] || {};
+  let hostList = null;
+  let guestList = null;
+  if (currentDuelData) {
+    const hostRaw = currentDuelData.hostBakugan || [];
+    const guestRaw = currentDuelData.guestBakugan || [];
+    hostList = [0, 1, 2].map(i => {
+      const b = hostRaw[i] || {};
+      return { ...b, bakucores: normalizeBakucores(b.bakucores) };
+    });
+    guestList = [0, 1, 2].map(i => {
+      const b = guestRaw[i] || {};
       return { ...b, bakucores: normalizeBakucores(b.bakucores) };
     });
   }
   Object.keys(map).forEach(key => {
     const parts = String(key).split('_');
-    let bi, cs, fromOpp = false;
-    if (parts[0] === 'mine' || parts[0] === 'opp') {
-      fromOpp = parts[0] === 'opp';
+    let bi, cs, ownerRole = null;
+    if (parts[0] === 'host' || parts[0] === 'guest') {
+      ownerRole = parts[0];
+      bi = parseInt(parts[1], 10);
+      cs = parseInt(parts[2], 10);
+    } else if (parts[0] === 'mine' || parts[0] === 'opp') {
+      // compat relativa
+      const fromOpp = parts[0] === 'opp';
+      ownerRole = duelRole
+        ? (fromOpp ? (duelRole === 'host' ? 'guest' : 'host') : duelRole)
+        : null;
       bi = parseInt(parts[1], 10);
       cs = parseInt(parts[2], 10);
     } else {
-      // clave legacy "0_1"
       bi = parseInt(parts[0], 10);
       cs = parseInt(parts[1], 10);
+      ownerRole = duelRole || null;
     }
-    if (isNaN(bi) || isNaN(cs)) return;
-    const list = fromOpp ? oppList : myBakuList;
+    if (isNaN(bi) || isNaN(cs)) {
+      next[key] = map[key];
+      return;
+    }
+    let list = myBakuList;
+    if (ownerRole === 'host' && hostList) list = hostList;
+    else if (ownerRole === 'guest' && guestList) list = guestList;
     const baku = (list && list[bi]) || {};
     const cores = normalizeBakucores(baku.bakucores);
     const core = cores[cs - 1];
     if (!core || !core.type) {
-      // conservar valor previo si no podemos resolver el core
       next[key] = map[key];
       return;
     }
@@ -6812,7 +6829,8 @@ function recalcAppliedCoresForForm(appliedCores, myBakuList, form) {
       bpower: bonus.bpower || 0,
       damage: bonus.damage || 0,
       energyDelta: bonus.energyDelta || 0,
-      fromOpp: !!prev.fromOpp || fromOpp,
+      fromOpp: !!prev.fromOpp,
+      ownerRole: prev.ownerRole || ownerRole || '',
       sourceName: prev.sourceName || baku.name || '',
       coreType: prev.coreType || core.type || ''
     };
@@ -7034,6 +7052,7 @@ async function createDuelRoom() {
   try {
     await db.collection('duels').doc(code).set(room);
     activeRoomCode = code;
+    window._duelEndHandledRoom = null;
     duelRole = 'host';
     document.getElementById('room-code-input').value = code;
     document.getElementById('duel-setup').style.display = 'none';
@@ -7073,6 +7092,7 @@ async function joinDuelRoom() {
     // Si soy el host volviendo a entrar
     if (data.hostId === currentUserId) {
       activeRoomCode = code;
+    window._duelEndHandledRoom = null;
       duelRole = 'host';
       document.getElementById('duel-setup').style.display = 'none';
       document.getElementById('display-room-code').textContent = code;
@@ -7083,6 +7103,7 @@ async function joinDuelRoom() {
     // Si ya soy el guest
     if (data.guestId === currentUserId) {
       activeRoomCode = code;
+    window._duelEndHandledRoom = null;
       duelRole = 'guest';
       document.getElementById('duel-setup').style.display = 'none';
       document.getElementById('display-room-code').textContent = code;
@@ -7115,6 +7136,7 @@ async function joinDuelRoom() {
     });
 
     activeRoomCode = code;
+    window._duelEndHandledRoom = null;
     duelRole = 'guest';
     document.getElementById('duel-setup').style.display = 'none';
     document.getElementById('duel-waiting').style.display = 'none';
@@ -7160,9 +7182,32 @@ function toggleBakucoreMatrix() {
   if (label) label.textContent = open ? 'OCULTAR MATRIX' : 'DESPLEGAR MATRIX';
 }
 
+/** Clave ABSOLUTA del core en la sala: host_0_1 / guest_0_1 (misma para ambos jugadores) */
 function matrixCoreKey(bakuIdx, coreSlot, fromOpp) {
-  const side = fromOpp ? 'opp' : 'mine';
-  return `${side}_${bakuIdx}_${coreSlot}`;
+  if (!duelRole) {
+    const side = fromOpp ? 'opp' : 'mine';
+    return `${side}_${bakuIdx}_${coreSlot}`;
+  }
+  // fromOpp=false → cores del jugador local; fromOpp=true → cores del rival
+  const ownerRole = fromOpp
+    ? (duelRole === 'host' ? 'guest' : 'host')
+    : duelRole;
+  return `${ownerRole}_${bakuIdx}_${coreSlot}`;
+}
+
+/** Busca quién tiene aplicado un core (host o guest). Devuelve { role, idx } o null */
+function findCoreHolderGlobal(d, key) {
+  if (!d || !key) return null;
+  for (const role of ['host', 'guest']) {
+    const live = getLiveStatsArray(d, role);
+    for (let i = 0; i < 3; i++) {
+      const slot = live[i] || {};
+      const map = slot.appliedCores || {};
+      if (map[key]) return { role, idx: i, meta: map[key] };
+      // compat claves relativas viejas (mine_/opp_/sin prefijo) — solo si coinciden en este cliente
+    }
+  }
+  return null;
 }
 
 function formatCoreBonusLines(bonus) {
@@ -7192,7 +7237,7 @@ function renderMatrixCoreCell(core, baku, live, bakuIdx, coreSlot, isMine, activ
       <div style="font-size:0.55rem;opacity:0.4;">#${bakuIdx + 1}.${coreSlot}</div>
     </div>`;
   }
-  // Bonus preview: forma del Bakugan ACTIVO del jugador (si hay), si no la del slot
+  // Bonus preview: forma del Bakugan ACTIVO del jugador (si hay)
   let form = (live && live.form) || 'base';
   if (currentDuelData && duelRole) {
     const myLive = getLiveStatsArray(currentDuelData, duelRole);
@@ -7202,29 +7247,36 @@ function renderMatrixCoreCell(core, baku, live, bakuIdx, coreSlot, isMine, activ
   const bonus = computeBakucoreBonus(core, baku, form);
   const fromOpp = !isMine;
   const key = matrixCoreKey(bakuIdx, coreSlot, fromOpp);
+
   let applied = false;
   let locked = false;
   let holderIdx = -1;
-  // Cualquier core (propio o rival) puede estar aplicado a MIS Bakugan
+  let holderIsOpp = false;
+  let holderTag = '';
+
   if (currentDuelData && duelRole) {
-    const myLive = getLiveStatsArray(currentDuelData, duelRole);
-    holderIdx = findCoreHolder(myLive, key);
-    // Compat: claves viejas sin prefijo (solo cores propios)
-    if (holderIdx < 0 && isMine) {
-      holderIdx = findCoreHolder(myLive, `${bakuIdx}_${coreSlot}`);
-    }
-    if (holderIdx >= 0) {
+    const global = findCoreHolderGlobal(currentDuelData, key);
+    if (global) {
       applied = true;
-      locked = !!(myLive[holderIdx] && myLive[holderIdx].deployed);
+      holderIdx = global.idx;
+      holderIsOpp = global.role !== duelRole;
+      const holderLive = getLiveStatsArray(currentDuelData, global.role);
+      locked = !!(holderLive[global.idx] && holderLive[global.idx].deployed);
+      // Si lo tiene el rival → no puedo seleccionarlo
+      if (holderIsOpp) locked = true;
+      const who = holderIsOpp ? 'Rival' : 'Vos';
+      holderTag = `<div class="matrix-core-tag">→ ${who} B${global.idx + 1}</div>`;
     }
   }
+
   const icon = BAKUCORE_ICON[core.type];
   const fromActive = isMine && activeSelected === bakuIdx;
   const tag = (bonus.tags && bonus.tags.length) ? `<div class="matrix-core-tag">${bonus.tags.join(' · ')}</div>` : '';
-  const holderTag = holderIdx >= 0 ? `<div class="matrix-core-tag">→ B${holderIdx + 1}</div>` : '';
   const sideLabel = isMine ? 'Tuyo' : 'Rival';
   const click = locked ? '' : `onclick="toggleApplyMatrixCore(${bakuIdx}, ${coreSlot}, ${fromOpp ? 'true' : 'false'})"`;
-  return `<div class="matrix-core ${isMine ? 'mine' : 'opp-core'}${applied ? ' applied' : ''}${locked ? ' locked' : ''}${fromActive ? ' from-active' : ''}" ${click} title="${sideLabel} · ${core.type} · B${bakuIdx + 1} C${coreSlot}">
+  const lockedCls = locked ? ' locked' : '';
+  const appliedCls = applied ? ' applied' : '';
+  return `<div class="matrix-core ${isMine ? 'mine' : 'opp-core'}${appliedCls}${lockedCls}${fromActive ? ' from-active' : ''}" ${click} title="${sideLabel} · ${core.type} · B${bakuIdx + 1} C${coreSlot}">
     <img class="matrix-core-icon" src="${icon}" alt="${core.type}" onerror="this.style.opacity='0.3'" />
     <div class="matrix-core-bonus">${formatCoreBonusLines(bonus)}${tag}${holderTag}</div>
   </div>`;
@@ -7276,7 +7328,6 @@ async function toggleApplyMatrixCore(bakuIdx, coreSlot, fromOpp) {
 
   fromOpp = !!fromOpp;
   const iAmHost = duelRole === 'host';
-  // Fuente del core: propios o del rival
   const sourceRaw = fromOpp
     ? (iAmHost ? (d.guestBakugan || []) : (d.hostBakugan || []))
     : (iAmHost ? (d.hostBakugan || []) : (d.guestBakugan || []));
@@ -7294,39 +7345,38 @@ async function toggleApplyMatrixCore(bakuIdx, coreSlot, fromOpp) {
     return;
   }
 
-  let liveArr = getLiveStatsArray(d, duelRole);
   const key = matrixCoreKey(bakuIdx, coreSlot, fromOpp);
-  // Compat claves antiguas (solo cores propios sin prefijo)
-  let holder = findCoreHolder(liveArr, key);
-  let legacyKey = null;
-  if (holder < 0 && !fromOpp) {
-    legacyKey = `${bakuIdx}_${coreSlot}`;
-    holder = findCoreHolder(liveArr, legacyKey);
+  const global = findCoreHolderGlobal(d, key);
+
+  // Si el rival ya lo tiene aplicado → bloqueado (un core solo puede usarlo un jugador a la vez)
+  if (global && global.role !== duelRole) {
+    alert('Ese Bakucore ya está aplicado por el rival. No se puede usar el mismo core a la vez.');
+    return;
   }
 
-  // Core ya usado por un Bakugan DESPLEGADO (ganador de ronda): bloqueado
+  let liveArr = getLiveStatsArray(d, duelRole);
+  const holder = (global && global.role === duelRole) ? global.idx : -1;
+
   if (holder >= 0 && liveArr[holder] && liveArr[holder].deployed) {
     alert('Ese Bakucore está adjunto a un Bakugan desplegado (ganó su ronda). No está disponible hasta el Team Attack / fin de turno.');
     return;
   }
 
   const slot = liveArr[selected] || { bpower: 0, damage: 0, form: 'base', appliedCores: {}, deployed: false };
-  // Si el activo ya está desplegado, no se pueden quitar/poner cores hasta liberar
   if (slot.deployed) {
     alert('Este Bakugan ya está desplegado. Sus cores quedan fijos hasta el Team Attack o fin de turno.');
     return;
   }
 
-  // Si el core está en otro Bakugan no desplegado, quitarlo de ahí primero
+  // Si el core está en otro Bakugan mío no desplegado, quitarlo de ahí primero
   if (holder >= 0 && holder !== selected) {
     const other = liveArr[holder] || {};
     const otherApplied = { ...(other.appliedCores || {}) };
-    const prev = otherApplied[key] || (legacyKey ? otherApplied[legacyKey] : null);
+    const prev = otherApplied[key];
     if (prev) {
       other.bpower = Math.max(0, (other.bpower || 0) - (prev.bpower || 0));
       other.damage = Math.max(0, (other.damage || 0) - (prev.damage || 0));
       delete otherApplied[key];
-      if (legacyKey) delete otherApplied[legacyKey];
       other.appliedCores = otherApplied;
       liveArr[holder] = other;
     }
@@ -7336,19 +7386,18 @@ async function toggleApplyMatrixCore(bakuIdx, coreSlot, fromOpp) {
   const form = slot.form || 'base';
   const bonus = computeBakucoreBonus(core, sourceBaku, form);
 
-  // Quitar si ya está (clave nueva o legacy)
-  if (applied[key] || (legacyKey && applied[legacyKey])) {
-    const prev = applied[key] || applied[legacyKey];
+  if (applied[key]) {
+    const prev = applied[key];
     slot.bpower = Math.max(0, (slot.bpower || 0) - (prev.bpower || 0));
     slot.damage = Math.max(0, (slot.damage || 0) - (prev.damage || 0));
     delete applied[key];
-    if (legacyKey) delete applied[legacyKey];
   } else {
     applied[key] = {
       bpower: bonus.bpower || 0,
       damage: bonus.damage || 0,
       energyDelta: bonus.energyDelta || 0,
       fromOpp: fromOpp,
+      ownerRole: fromOpp ? (duelRole === 'host' ? 'guest' : 'host') : duelRole,
       sourceName: sourceBaku.name || '',
       coreType: core.type || ''
     };
@@ -8043,7 +8092,7 @@ function renderDamageClockUI(d) {
   }
 }
 
-async function markActiveBakuganDeployed() {
+async function declareRoundWinner() {
   if (!activeRoomCode || !duelRole || !currentDuelData) return;
   const d = currentDuelData;
   const selected = duelRole === 'host' ? d.hostSelected : d.guestSelected;
@@ -8051,84 +8100,89 @@ async function markActiveBakuganDeployed() {
     alert('Primero elegí el Bakugan que ganó la ronda.');
     return;
   }
-  let liveArr = getLiveStatsArray(d, duelRole);
-  const slot = liveArr[selected] || { bpower: 0, damage: 0, form: 'base', appliedCores: {}, deployed: false };
+
+  let myLive = getLiveStatsArray(d, duelRole);
+  const slot = myLive[selected] || { bpower: 0, damage: 0, form: 'base', appliedCores: {}, deployed: false };
+
   if (slot.deployed) {
-    // Ya desplegado: permitir solo declarar daño de nuevo
     const dmg = parseInt(slot.damage, 10) || 0;
-    if (dmg > 0 && confirm('Este Bakugan ya está desplegado.\\n\\n¿Declarar su daño (' + dmg + ') con el reloj de 12s por carta?')) {
+    if (dmg > 0 && confirm('Este Bakugan ya está desplegado.\n\n¿Declarar su daño (' + dmg + ') con el reloj de 12s por carta?')) {
       await startDamageResolution(dmg, 'Daño del vencedor');
     }
     return;
   }
-  liveArr[selected] = {
+
+  // 1) Desplegar mi Bakugan ganador (bloquea cores)
+  myLive[selected] = {
     ...slot,
     appliedCores: slot.appliedCores || {},
     deployed: true
   };
-  const updates = duelRole === 'host'
-    ? { hostLiveStats: liveArr }
-    : { guestLiveStats: liveArr };
-  await db.collection('duels').doc(activeRoomCode).update(updates);
 
-  const dmg = parseInt(slot.damage, 10) || 0;
-  if (dmg > 0) {
-    const ok = confirm('¡Bakugan desplegado!\\n\\nDaño del vencedor: ' + dmg + '\\n\\n¿Iniciar resolución con reloj?\\n(1 daño = 1 carta del rival cada 12 segundos)\\nEl rival puede STOP si una carta frena el daño.');
-    if (ok) await startDamageResolution(dmg, 'Daño del vencedor');
-  }
-}
-
-async function resetActiveBakuganToBase() {
-  if (!activeRoomCode || !duelRole || !currentDuelData) return;
-  const d = currentDuelData;
-  const selected = duelRole === 'host' ? d.hostSelected : d.guestSelected;
-  if (selected === null || selected === undefined) {
-    alert('No hay Bakugan activo para resetear.');
-    return;
-  }
-  let liveArr = getLiveStatsArray(d, duelRole);
-  const slot = liveArr[selected] || { form: 'base', formBaseB: 0, formBaseD: 0, appliedCores: {} };
-  const formBaseB = slot.formBaseB != null ? (parseInt(slot.formBaseB, 10) || 0) : (parseInt(slot.bpower, 10) || 0);
-  const formBaseD = slot.formBaseD != null ? (parseInt(slot.formBaseD, 10) || 0) : (parseInt(slot.damage, 10) || 0);
-  // Perdedor: devuelve cores a la Matrix y NO queda desplegado
-  liveArr[selected] = {
-    ...slot,
-    bpower: formBaseB,
-    damage: formBaseD,
-    formBaseB: formBaseB,
-    formBaseD: formBaseD,
-    appliedCores: {},
-    deployed: false
-  };
-
-  // El rival ganó la ronda: su Bakugan activo conserva cores y queda DESPLEGADO
+  // 2) El rival activo pierde la ronda: devuelve cores a Matrix (stats de forma activa)
   const oppRole = duelRole === 'host' ? 'guest' : 'host';
   const oppSelected = duelRole === 'host' ? d.guestSelected : d.hostSelected;
   let oppLive = getLiveStatsArray(d, oppRole);
+  let oppBpower = duelRole === 'host' ? d.guestBpower : d.hostBpower;
+  let oppDamage = duelRole === 'host' ? d.guestDamage : d.hostDamage;
+
   if (oppSelected !== null && oppSelected !== undefined) {
-    const oppSlot = oppLive[oppSelected] || {};
+    const oppSlot = oppLive[oppSelected] || { form: 'base', formBaseB: 0, formBaseD: 0, appliedCores: {} };
+    const formBaseB = oppSlot.formBaseB != null
+      ? (parseInt(oppSlot.formBaseB, 10) || 0)
+      : (parseInt(oppSlot.bpower, 10) || 0);
+    const formBaseD = oppSlot.formBaseD != null
+      ? (parseInt(oppSlot.formBaseD, 10) || 0)
+      : (parseInt(oppSlot.damage, 10) || 0);
     oppLive[oppSelected] = {
       ...oppSlot,
-      appliedCores: oppSlot.appliedCores || {},
-      deployed: true
+      bpower: formBaseB,
+      damage: formBaseD,
+      formBaseB: formBaseB,
+      formBaseD: formBaseD,
+      appliedCores: {},
+      deployed: false
     };
+    oppBpower = formBaseB;
+    oppDamage = formBaseD;
   }
 
   const updates = duelRole === 'host'
     ? {
-        hostLiveStats: liveArr,
-        hostBpower: formBaseB,
-        hostDamage: formBaseD,
-        guestLiveStats: oppLive
+        hostLiveStats: myLive,
+        hostBpower: slot.bpower,
+        hostDamage: slot.damage,
+        guestLiveStats: oppLive,
+        guestBpower: oppBpower,
+        guestDamage: oppDamage
       }
     : {
-        guestLiveStats: liveArr,
-        guestBpower: formBaseB,
-        guestDamage: formBaseD,
-        hostLiveStats: oppLive
+        guestLiveStats: myLive,
+        guestBpower: slot.bpower,
+        guestDamage: slot.damage,
+        hostLiveStats: oppLive,
+        hostBpower: oppBpower,
+        hostDamage: oppDamage
       };
 
   await db.collection('duels').doc(activeRoomCode).update(updates);
+
+  const dmg = parseInt(slot.damage, 10) || 0;
+  if (dmg > 0) {
+    const ok = confirm('¡Ronda ganada!\n\nTu Bakugan queda desplegado y el rival devolvió sus cores.\n\nDaño del vencedor: ' + dmg + '\n\n¿Iniciar resolución con reloj?\n(1 daño = 1 carta del rival cada 12 segundos)\nEl rival puede STOP si una carta frena el daño.');
+    if (ok) await startDamageResolution(dmg, 'Daño del vencedor');
+  } else {
+    alert('¡Ronda ganada!\nTu Bakugan queda desplegado y el rival devolvió sus cores a la Matrix.');
+  }
+}
+
+/** Compat: alias viejos */
+async function markActiveBakuganDeployed() {
+  return declareRoundWinner();
+}
+
+async function resetActiveBakuganToBase() {
+  alert('Ya no hace falta declarar derrota manualmente.\nCuando el rival pulse “Declarar vencedor”, tu Bakugan activo pierde la ronda y devuelve los cores automáticamente.');
 }
 
 
@@ -8409,19 +8463,41 @@ function buildMatchHistoryPayload(result, d) {
 }
 
 async function saveMatchHistoryEntry(result, d) {
-  if (!currentUserId || !d) return;
+  if (!currentUserId || !d) return null;
   const payload = buildMatchHistoryPayload(result, d);
-  // Subcolección del jugador + colección global indexada por playerId
-  const ref = db.collection('players').doc(currentUserId).collection('matchHistory').doc();
-  await ref.set(payload);
+  payload.id = payload.id || (activeRoomCode + '_' + currentUserId + '_' + (payload.playedAt || Date.now()));
+  let saved = false;
+
+  // 1) Subcolección del jugador
   try {
-    await db.collection('matchHistory').doc(ref.id).set({
-      ...payload,
-      id: ref.id
-    });
-  } catch (e) {
-    // reglas pueden bloquear colección global; la subcolección basta
+    const ref = db.collection('players').doc(currentUserId).collection('matchHistory').doc(String(payload.id));
+    await ref.set(payload, { merge: true });
+    saved = true;
+  } catch (err) {
+    console.warn('matchHistory subcolección falló', err);
   }
+
+  // 2) Fallback: campo matchLog en el documento del jugador (funciona con reglas típicas)
+  try {
+    const me = getMyPlayer();
+    const prev = (me && Array.isArray(me.matchLog)) ? me.matchLog.slice() : [];
+    // evitar duplicados por id
+    const filtered = prev.filter(x => x && x.id !== payload.id && !(x.roomCode === payload.roomCode && x.playedAt === payload.playedAt));
+    filtered.unshift(payload);
+    const nextLog = filtered.slice(0, 40);
+    await db.collection('players').doc(currentUserId).set({ matchLog: nextLog }, { merge: true });
+    if (me) me.matchLog = nextLog;
+    saved = true;
+  } catch (err2) {
+    console.warn('matchLog fallback falló', err2);
+  }
+
+  // 3) Intento colección global (opcional)
+  try {
+    await db.collection('matchHistory').doc(String(payload.id)).set({ ...payload, id: payload.id }, { merge: true });
+  } catch (e) {}
+
+  return saved ? payload : null;
 }
 
 let _matchHistoryCache = [];
@@ -8435,26 +8511,52 @@ async function loadMatchHistory() {
     return;
   }
   list.innerHTML = '<div class="hist-empty">Cargando historial…</div>';
+  let items = [];
+
+  // A) Subcolección
   try {
     const snap = await db.collection('players').doc(currentUserId).collection('matchHistory')
       .orderBy('playedAt', 'desc')
       .limit(40)
       .get();
-    _matchHistoryCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    _matchHistoryLoadedFor = currentUserId;
-    renderMatchHistoryList(_matchHistoryCache);
+    items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (err) {
-    console.warn(err);
-    // Fallback sin orderBy (índice faltante)
     try {
       const snap = await db.collection('players').doc(currentUserId).collection('matchHistory').limit(40).get();
-      _matchHistoryCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      _matchHistoryCache.sort((a, b) => (b.playedAt || 0) - (a.playedAt || 0));
-      renderMatchHistoryList(_matchHistoryCache);
+      items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (e2) {
-      list.innerHTML = '<div class="hist-empty">No se pudo cargar el historial.</div>';
+      console.warn('historial subcolección', e2);
     }
   }
+
+  // B) Fallback matchLog del perfil
+  try {
+    const me = getMyPlayer();
+    let log = (me && Array.isArray(me.matchLog)) ? me.matchLog.slice() : [];
+    if (!log.length) {
+      const doc = await db.collection('players').doc(currentUserId).get();
+      if (doc.exists) {
+        const data = doc.data() || {};
+        if (Array.isArray(data.matchLog)) log = data.matchLog.slice();
+        // sincronizar cache local
+        if (me) me.matchLog = log;
+      }
+    }
+    log.forEach(entry => {
+      if (!entry) return;
+      const id = entry.id || (entry.roomCode + '_' + entry.playedAt);
+      if (!items.some(x => (x.id === id) || (x.roomCode === entry.roomCode && x.playedAt === entry.playedAt))) {
+        items.push({ ...entry, id });
+      }
+    });
+  } catch (e3) {
+    console.warn('matchLog read', e3);
+  }
+
+  items.sort((a, b) => (b.playedAt || 0) - (a.playedAt || 0));
+  _matchHistoryCache = items.slice(0, 40);
+  _matchHistoryLoadedFor = currentUserId;
+  renderMatchHistoryList(_matchHistoryCache);
 }
 
 function formatHistDate(ts, iso) {
@@ -8573,29 +8675,42 @@ function renderMatchHistoryDetail(m) {
 
 async function handleDuelEnd(result) {
   // result: 'win' | 'loss' | 'forfeit_loss'
-  if (!activeRoomCode || !currentDuelData || currentDuelData.status === 'ended') return;
-  try {
-    await db.collection('duels').doc(activeRoomCode).update({
-      status: 'ended',
-      endResult: result,
-      endedBy: currentUserId
-    });
-  } catch (e) {}
+  if (!activeRoomCode || !currentDuelData) return;
+
+  // Evitar doble aplicación de puntos en el mismo cliente
+  if (window._duelEndHandledRoom === activeRoomCode) {
+    return;
+  }
+  window._duelEndHandledRoom = activeRoomCode;
 
   const d = currentDuelData;
+  const alreadyEnded = d.status === 'ended';
+
+  if (!alreadyEnded) {
+    try {
+      await db.collection('duels').doc(activeRoomCode).update({
+        status: 'ended',
+        endResult: result,
+        endedBy: currentUserId
+      });
+    } catch (e) {}
+  }
+
   const me = getMyPlayer();
   const oppId = duelRole === 'host' ? d.guestId : d.hostId;
   const opp = players.find(p => p.id === oppId);
 
-  // Guardar historial detallado (antes de cerrar)
+  // Guardar historial SIEMPRE (cada jugador guarda su vista)
   try {
     await saveMatchHistoryEntry(result, d);
   } catch (err) {
     console.warn('No se pudo guardar historial', err);
+    try {
+      alert('La partida terminó, pero el historial no se pudo guardar. Revisá las reglas de Firestore (matchLog / matchHistory).');
+    } catch (e) {}
   }
 
-  // Cada cliente aplica su propio resultado (evita doble conteo).
-  // En abandono, el que abandona también acredita la victoria especial al rival.
+  // Puntos: solo una vez por cliente
   if (result === 'forfeit_loss') {
     if (me) await applyMatchResult(me, 'forfeit_loss');
     if (opp) await applyMatchResult(opp, 'forfeit_win');
