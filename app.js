@@ -1750,7 +1750,7 @@ const CORE_TYPE_CATALOG = [
   { id: 'fire_fist', name: 'Fire Fist', icon: 'core_fire_fist.png', infoArt: 'core_fire_fist_frente.png', desc: 'Puño de fuego' },
   { id: 'shield', name: 'Shield', icon: 'core_shield.png', infoArt: 'core_shield_frente.png', desc: 'Escudo naranja' },
   { id: 'magic_shield', name: 'Magic Shield', icon: 'core_magic_shield.png', infoArt: 'core_magic_shield_frente.png', desc: 'Escudo mágico' },
-  { id: 'helix', name: 'Helix', icon: 'core_helix.png', infoArt: 'Core_helix_frente.png', desc: 'Hélice' }
+  { id: 'helix', name: 'Helix', icon: 'core_helix.png', infoArt: 'core_helix_frente.png', desc: 'Hélice' }
 ];
 
 const CORE_VARIANT_CATALOG = [
