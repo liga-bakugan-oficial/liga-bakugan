@@ -2014,6 +2014,18 @@ const CORE_VARIANT_CATALOG = [
     requiresFusion: true,
     ability: ''
    },
+    {
+    id: 'fist-23',
+    type: 'fist',
+    name: 'Fist 23',
+    bpower: 100,
+    damage: 0,
+    factionBpower: 0,
+    factionDamage: 3,
+    restrictFaction: 'pyrus',
+    restrictFaction2: 'ventus',
+    ability: ''
+  },
   
   /*==== FIRE FIST ===== */
   {
