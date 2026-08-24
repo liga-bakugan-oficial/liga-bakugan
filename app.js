@@ -530,28 +530,92 @@ let isAdminMode = false;
 let currentImageData = "";
 let isAppInitialized = false;
 
+/** Jugadores + noticias en vivo.
+ *  Se listan TODOS los players (liga chica/mediana).
+ *  orderBy('points') excluía a quien no tenía el campo → ranking vacío de más.
+ *  Lazy-load de imágenes se mantiene en la colección.
+ */
+let rankingUnsub = null;
+let myPlayerUnsub = null;
+
+function upsertPlayerLocal(data) {
+  if (!data || !data.id) return;
+  // Asegurar points para ranking estable
+  if (data.points == null || data.points === undefined) {
+    data.points = Math.max(0, ((data.wins || 0) * 50) - ((data.losses || 0) * 25));
+  }
+  const idx = players.findIndex(p => p.id === data.id);
+  if (idx === -1) players.push(data);
+  else players[idx] = Object.assign({}, players[idx], data);
+}
+
+/** Carga un jugador bajo demanda (duelo / modal) si aún no está en memoria */
+async function ensurePlayerLoaded(userId) {
+  if (!userId) return null;
+  let p = players.find(x => x.id === userId);
+  if (p) return p;
+  try {
+    const doc = await db.collection('players').doc(userId).get();
+    if (doc.exists) {
+      p = Object.assign({ id: doc.id }, doc.data());
+      if (!p.id) p.id = doc.id;
+      upsertPlayerLocal(p);
+      return p;
+    }
+  } catch (e) {
+    console.warn('ensurePlayerLoaded', e);
+  }
+  return null;
+}
+
+function listenMyPlayerDoc(uid) {
+  if (myPlayerUnsub) {
+    try { myPlayerUnsub(); } catch (e) {}
+    myPlayerUnsub = null;
+  }
+  if (!uid) return;
+  myPlayerUnsub = db.collection('players').doc(uid).onSnapshot((doc) => {
+    if (!doc.exists) return;
+    const data = Object.assign({}, doc.data(), { id: doc.id });
+    upsertPlayerLocal(data);
+    if (typeof renderProfile === 'function') renderProfile();
+    if (typeof applyAdminAccess === 'function') applyAdminAccess();
+    if (typeof renderRanking === 'function') renderRanking();
+  }, (err) => console.warn('myPlayer listener', err));
+}
+
 function listenToDatabase() {
-  db.collection("players").onSnapshot((snapshot) => {
-    players = [];
+  if (rankingUnsub) {
+    try { rankingUnsub(); } catch (e) {}
+    rankingUnsub = null;
+  }
+
+  // Todos los jugadores (sin orderBy: si falta "points" igual aparecen)
+  rankingUnsub = db.collection('players').onSnapshot((snapshot) => {
+    const list = [];
     snapshot.forEach((doc) => {
-      const data = doc.data();
+      const data = doc.data() || {};
       if (!data.id) data.id = doc.id;
-      players.push(data);
+      if (data.points == null || data.points === undefined) {
+        data.points = Math.max(0, ((data.wins || 0) * 50) - ((data.losses || 0) * 25));
+      }
+      list.push(data);
     });
-
-    renderRanking();
-
+    players = list;
+    if (typeof renderRanking === 'function') renderRanking();
     if (currentUserId) {
-      renderProfile();
-      applyAdminAccess();
+      if (typeof renderProfile === 'function') renderProfile();
+      if (typeof applyAdminAccess === 'function') applyAdminAccess();
     } else {
       isAdminMode = false;
       const tab = document.getElementById('tab-admin-btn');
       if (tab) tab.style.display = 'none';
     }
-  });
+  }, (err) => console.warn('players listener', err));
 
-  db.collection("news").onSnapshot((snapshot) => {
+  if (currentUserId) listenMyPlayerDoc(currentUserId);
+
+  db.collection('news').onSnapshot((snapshot) => {
     newsList = [];
     snapshot.forEach((doc) => {
       newsList.push({ id: doc.id, ...doc.data() });
@@ -564,7 +628,24 @@ function listenToDatabase() {
   });
 }
 
+/** Admin: refresco opcional (el listener ya trae a todos) */
+async function loadAllPlayersForAdmin() {
+  try {
+    const snap = await db.collection('players').get();
+    snap.forEach((doc) => {
+      const data = doc.data() || {};
+      if (!data.id) data.id = doc.id;
+      upsertPlayerLocal(data);
+    });
+    if (typeof renderAdminPanel === 'function') renderAdminPanel();
+    if (typeof renderRanking === 'function') renderRanking();
+  } catch (e) {
+    console.warn('loadAllPlayersForAdmin', e);
+  }
+}
+
 function saveUserToCloud(user) {
+
   return db.collection("players").doc(user.id).set(user, { merge: true });
 }
 
@@ -2883,6 +2964,8 @@ function buildCoreFlipCard(c, typeMeta, opts) {
   opts = opts || {};
   const owned = !!opts.owned;
   const big = !!opts.big;
+  // Por defecto: cara de INFO visible al entrar; al tocar se ve el icono
+  const startFlipped = opts.startFlipped !== false; // default true
   // Anverso: icono simple del tipo (igual para todas las variantes)
   const frontSrc = (typeMeta && typeMeta.icon) || c.icon || 'core_fist.png';
   // Reverso: carta con franja vacía + info encima (no cambia el anverso)
@@ -2893,15 +2976,16 @@ function buildCoreFlipCard(c, typeMeta, opts) {
     || frontSrc;
   const icons = formatCoreEffectIconsHtml(c);
   const wrapCls = big ? 'col-core-detail-flip' : 'col-core-flip';
+  const flippedCls = startFlipped ? ' flipped' : '';
   const idAttr = opts.flipId ? ` id="${opts.flipId}"` : '';
   const click = opts.onclick || `toggleCoreFlip(this)`;
-  return `<div class="${wrapCls}${owned ? ' owned' : ''}"${idAttr} onclick="${click}">
+  return `<div class="${wrapCls}${flippedCls}${owned ? ' owned' : ''}"${idAttr} onclick="${click}">
     <div class="col-core-flip-inner">
       <div class="col-core-face front">
-        <img class="cv-art" src="${frontSrc}" alt="${(typeMeta && typeMeta.name) || c.type || ''}" onerror="this.style.opacity=0.35" />
+        <img class="cv-art" src="${frontSrc}" alt="${(typeMeta && typeMeta.name) || c.type || ''}" loading="lazy" decoding="async" onerror="this.style.opacity=0.35" />
       </div>
       <div class="col-core-face back">
-        <img class="cv-art" src="${backSrc}" alt="" onerror="this.onerror=null;this.src='${frontSrc}'" />
+        <img class="cv-art" src="${backSrc}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${frontSrc}'" />
         <div class="cv-info">
           <div class="cv-name">${c.name || ''}</div>
           <div class="col-core-icons">${icons}</div>
@@ -3022,7 +3106,7 @@ function renderCollectionGrid() {
         <div class="col-core-type-grid">${CORE_TYPE_CATALOG.map(t => {
           const n = coresOfType(t.id).length;
           return `<div class="col-core-type-card" onclick="openCoreTypeList('${t.id}')">
-            <img src="${t.icon}" alt="${t.name}" onerror="this.style.opacity='0.3'" />
+            <img src="${t.icon}" alt="${t.name}" loading="lazy" decoding="async" onerror="this.style.opacity='0.3'" />
             <div class="ct-name">${t.name}</div>
             <div class="ct-count">${n} variante${n === 1 ? '' : 's'}</div>
           </div>`;
@@ -3037,7 +3121,7 @@ function renderCollectionGrid() {
     if (!variants.length) {
       body = '<div class="col-empty">Todavía no hay variantes de este tipo.<br/>Agregalas en CORE_VARIANT_CATALOG.</div>';
     } else {
-      body = `<p class="col-core-hint">Tocá la carta para girarla y ver el efecto</p>
+      body = `<p class="col-core-hint">Tocá la carta para girarla y ver el anverso</p>
         <div class="col-core-variant-grid">${variants.map(c => {
           const qty = owned.cores[c.id] || 0;
           // flip al tocar; doble tap / hold no — botón detalle en el reverso vía stop + open
@@ -3085,7 +3169,7 @@ function renderCollectionGrid() {
     const hexSrc = b.charCard || b.fusionCardFront || b.icon || b.figureOpen || b.figureClosed || 'icono_bakugan.png';
     const thumbsHtml = `<div class="col-thumb-row hex-only">
       <div class="col-char-hex" title="${b.name}">
-        <img src="${hexSrc}" alt="${b.name}" onerror="this.src='icono_bakugan.png'" />
+        <img src="${hexSrc}" alt="${b.name}" loading="lazy" decoding="async" onerror="this.src='icono_bakugan.png'" />
       </div>
     </div>`;
     return `<div class="col-card ${isOwned ? 'owned' : ''}" onclick="openBakuganDetail('${b.id}')">
@@ -3093,7 +3177,7 @@ function renderCollectionGrid() {
       ${thumbsHtml}
       <div class="col-name">${b.name}</div>
       <div class="col-stats">
-        <img src="${facIcon}" alt="" style="width:14px;height:14px;object-fit:contain;" onerror="this.remove()" />
+        <img src="${facIcon}" alt="" loading="lazy" decoding="async" style="width:14px;height:14px;object-fit:contain;" onerror="this.remove()" />
         <span>B ${b.bpower || 0}</span>
         <span>⚔ ${b.damage || 0}</span>
       </div>
@@ -4318,13 +4402,20 @@ function enterVisitorMode() {
   updateAuthFabUI();
   const tabAdmin = document.getElementById('tab-admin-btn');
   if (tabAdmin) tabAdmin.style.display = 'none';
-  // Cerrar guía si estaba abierta
   const bubble = document.getElementById('guide-bubble');
   if (bubble) bubble.style.display = 'none';
   renderRanking();
   renderNews();
   switchTab('liga');
   playLobbyMusic();
+  // Presentación de la página: solo en modo visita (y solo 1 vez por navegador)
+  const seen = localStorage.getItem('bakugan_page_guide_done') === '1';
+  if (!seen) {
+    guideFinished = false;
+    startGuide();
+  } else {
+    finishGuide(true);
+  }
 }
 
 function enterApp() {
@@ -4337,7 +4428,9 @@ function enterApp() {
   renderNews();
   applyAdminAccess();
   switchTab('perfil');
-  if (!guideFinished) startGuide();
+  // Usuarios logueados: sin presentación automática de Lady Fenne
+  stopGuidePresentation();
+  finishGuide(true); // deja el ícono de ayuda (?) disponible, sin hablar solo
   playLobbyMusic();
 }
 
@@ -4815,7 +4908,7 @@ function renderRanking() {
   const sorted = [...players].sort((a, b) => {
     recalculatePoints(a);
     recalculatePoints(b);
-    return b.points - a.points;
+    return (b.points || 0) - (a.points || 0);
   });
 
   tbody.innerHTML = '';
@@ -4841,7 +4934,7 @@ function renderRanking() {
       <td style="font-family:'Orbitron'; font-weight:bold; font-size:0.75rem; color:var(--neon-cyan);">#${index + 1}</td>
       <td>
         <div class="rank-player-cell">
-          <img src="${avatarSrc}" class="rank-avatar${/\.png(\?|$)/i.test(avatarSrc||'') ? ' avatar-png' : ''}" alt=""
+          <img src="${avatarSrc}" loading="lazy" decoding="async" class="rank-avatar${/\.png(\?|$)/i.test(avatarSrc||'') ? ' avatar-png' : ''}" alt=""
                onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22%3E%3Cpolygon points=%2212,2 28,2 38,20 28,38 12,38 2,20%22 fill=%22%230a1525%22 stroke=%22%2300f0ff%22 stroke-width=%221.5%22/%3E%3C/svg%3E';" />
           <div style="min-width:0; flex:1;">
             <div class="rank-nick" style="color:${isMe ? 'var(--neon-cyan)' : '#fff'};">${p.nick || 'Brawler'}</div>
@@ -4866,7 +4959,13 @@ function renderRanking() {
 }
 
 /* ================= VENTANA MODAL VER BRAWLER ================= */
-function openPlayerModal(player) {
+async function openPlayerModal(player) {
+  if (player && typeof player === 'string' && typeof ensurePlayerLoaded === 'function') {
+    player = await ensurePlayerLoaded(player) || { id: player };
+  } else if (player && player.id && typeof ensurePlayerLoaded === 'function') {
+    player = (await ensurePlayerLoaded(player.id)) || player;
+  }
+  if (!player) return;
   recalculatePoints(player);
   const r = getRank(player.points || 0);
 
@@ -4960,8 +5059,16 @@ function applyAdminAccess() {
       switchTab('perfil');
     }
   } else {
-    renderAdminPanel();
-    renderAdminNewsList();
+    // Carga completa solo para admin (una lectura, sin listener eterno de toda la colección)
+    if (typeof loadAllPlayersForAdmin === 'function') {
+      loadAllPlayersForAdmin().then(() => {
+        renderAdminPanel();
+        renderAdminNewsList();
+      });
+    } else {
+      renderAdminPanel();
+      renderAdminNewsList();
+    }
   }
 }
 
@@ -5303,6 +5410,7 @@ const guideMessages = [
 
 function startGuide() {
   if (guideFinished) return;
+  stopGuidePresentation();
 
   guideStep = 0;
   const box = document.getElementById('char-box');
@@ -5320,9 +5428,17 @@ function showNextGuide() {
   const bubble = document.getElementById('guide-bubble');
   const img = document.getElementById('guide-img');
   if (!bubble) return;
+  if (_guideTimer) {
+    clearTimeout(_guideTimer);
+    _guideTimer = null;
+  }
 
   if (guideStep < guideMessages.length) {
-    bubble.innerHTML = t(guideMessages[guideStep]);
+    bubble.innerHTML = t(guideMessages[guideStep]) +
+      '<div style="text-align:right;margin-top:8px;">' +
+      '<button type="button" class="btn btn-sm" style="padding:3px 10px;font-size:0.62rem;" onclick="event.stopPropagation();finishGuide()">' +
+      (typeof t === 'function' ? (t('tut.close') || 'Cerrar') : 'Cerrar') +
+      '</button></div>';
     bubble.style.display = 'block';
 
     const pose = GUIDE_POSES[guideStep] || GUIDE_POSES[0];
@@ -5331,9 +5447,9 @@ function showNextGuide() {
     guideStep++;
 
     if (guideStep < guideMessages.length) {
-      setTimeout(showNextGuide, 4500);
+      _guideTimer = setTimeout(showNextGuide, 4500);
     } else {
-      setTimeout(() => {
+      _guideTimer = setTimeout(() => {
         bubble.style.display = 'none';
         finishGuide();
       }, 5000);
@@ -5341,8 +5457,21 @@ function showNextGuide() {
   }
 }
 
-function finishGuide() {
+let _guideTimer = null;
+
+function stopGuidePresentation() {
+  if (_guideTimer) {
+    clearTimeout(_guideTimer);
+    _guideTimer = null;
+  }
+  const bubble = document.getElementById('guide-bubble');
+  if (bubble) bubble.style.display = 'none';
+}
+
+function finishGuide(silent) {
+  stopGuidePresentation();
   guideFinished = true;
+  try { localStorage.setItem('bakugan_page_guide_done', '1'); } catch (e) {}
   const box = document.getElementById('char-box');
   const img = document.getElementById('guide-img');
 
@@ -5839,11 +5968,14 @@ function statsLineHtml(bpower, damage, size) {
     <span style="display:inline-flex;align-items:center;gap:4px;">${damageIconHtml(s)} ${damage}</span>`;
 }
 
-function openDuelModal(targetUserId) {
+async function openDuelModal(targetUserId) {
   if (!currentUserId) {
     alert('Tenés que iniciar sesión para duelar.');
     openLoginOverlay();
     return;
+  }
+  if (targetUserId && typeof ensurePlayerLoaded === 'function') {
+    await ensurePlayerLoaded(targetUserId);
   }
   invitedOpponentId = targetUserId || null;
   document.getElementById('duel-setup').style.display = 'block';
@@ -7874,9 +8006,12 @@ function renderTutorialStep() {
   if (prog) prog.textContent = s.progress;
   bubble.innerHTML = s.text;
   s.stage();
-  actions.innerHTML = s.buttons.map(b =>
+  const stepBtns = s.buttons.map(b =>
     `<button type="button" class="btn" onclick="${b.fn}">${b.label}</button>`
   ).join('');
+  // Siempre se puede salir de la guía sin llegar al final
+  const exitBtn = `<button type="button" class="btn btn-danger" onclick="closeTutorial()" style="flex:0 0 auto;min-width:110px;">✕ ${t('tut.close')}</button>`;
+  actions.innerHTML = stepBtns + exitBtn;
   // Lady Fenne "habla" alternando poses
   const bubImg = document.getElementById('tut-fenne-bubble');
   if (bubImg) tutStartFenneTalk(bubImg);
@@ -8142,11 +8277,13 @@ window.addEventListener('DOMContentLoaded', () => {
         players.push(basic);
       }
       isAppInitialized = true;
+      if (typeof listenMyPlayerDoc === 'function') listenMyPlayerDoc(user.uid);
       enterApp();
     } else {
       currentUserId = null;
       isAppInitialized = false;
       isAdminMode = false;
+      if (typeof listenMyPlayerDoc === 'function') listenMyPlayerDoc(null);
       const tab = document.getElementById('tab-admin-btn');
       if (tab) tab.style.display = 'none';
       enterVisitorMode();

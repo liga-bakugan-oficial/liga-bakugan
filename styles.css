@@ -2619,6 +2619,31 @@ input:focus, select:focus, textarea:focus {
   padding: 16px 12px 40px;
 }
 #tutorial-overlay.open { display: block; }
+.tut-close-x {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 240, 255, 0.45);
+  background: rgba(8, 12, 24, 0.92);
+  color: var(--neon-cyan);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tut-close-x:hover {
+  background: rgba(255, 0, 85, 0.25);
+  border-color: #ff6688;
+  color: #ff6688;
+}
+.tut-shell { position: relative; }
 .tut-shell {
   max-width: 520px;
   margin: 0 auto;
@@ -3244,8 +3269,8 @@ input:focus, select:focus, textarea:focus {
   width: calc(100% - 4px);
   height: calc(100% - 4px);
   object-fit: cover;
-  /* Encuadre centrado en el personaje (oculta título arriba y franja de habilidad abajo) */
-  object-position: center 22%;
+  /* Solo cambia el encuadre dentro del hex (sin agrandar el hexágono) */
+  object-position: center 5%;
   background: rgba(10, 15, 30, 0.95);
   clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
   z-index: 2;
@@ -3256,7 +3281,7 @@ input:focus, select:focus, textarea:focus {
   height: 62px;
 }
 .col-thumb-row.hex-only .col-char-hex img {
-  object-position: center 22%;
+  object-position: center 5%;
 }
 .col-card .col-name {
   font-family: 'Orbitron', sans-serif;
@@ -3445,48 +3470,56 @@ input:focus, select:focus, textarea:focus {
   padding: 0 4px;
   text-shadow: 0 1px 0 rgba(255,255,255,0.25);
 }
-/* Efectos → franja inferior ancha, centrados */
+/* Efectos → franja inferior; márgenes laterales para no salirse del hex */
 .col-core-icons {
   position: absolute;
-  left: 1%;
-  right: 14%;
-  top: 45%;
-  height: 28%;
+  left: 16%;
+  right: 18%;
+  top: 44%;
+  height: 30%;
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 4px;
+  gap: 1px 3px;
   justify-content: center;
   align-content: center;
   align-items: center;
+  overflow: hidden; /* no dejar que chips se salgan del área */
+  box-sizing: border-box;
+  padding: 0 2px;
 }
 .col-core-icon-chip {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   font-family: 'Orbitron', sans-serif;
-  font-size: 0.5rem;
+  font-size: 0.45rem;
   color: #041018;
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(0, 0, 0, 0.18);
-  border-radius: 5px;
-  padding: 2px 4px;
+  border-radius: 4px;
+  padding: 1px 3px;
   line-height: 1;
   box-shadow: 0 1px 2px rgba(0,0,0,0.25);
   font-weight: 700;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .col-core-icon-chip img {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   object-fit: contain;
+  flex-shrink: 0;
 }
-/* Renglón completo: Fusión / Gear quedan debajo de stats base */
+/* Fusión / Gear: misma franja, más compactos (no empujan fuera del hex) */
 .col-core-icon-chip.fusion-row,
 .col-core-icon-chip.gear-row {
-  flex-basis: 100%;
+  flex-basis: auto;
+  max-width: 100%;
   justify-content: center;
-  margin-top: 2px;   /* ← subí/bajá separación respecto a la fila de arriba */
-  gap: 3px;
-  background: rgba(255, 255, 255, 0.45);
+  margin-top: 1px;
+  gap: 2px;
+  padding: 1px 3px;
+  background: rgba(255, 255, 255, 0.5);
 }
 .col-core-icon-chip.fac {
   border-color: rgba(180, 100, 0, 0.45);
@@ -3528,11 +3561,12 @@ input:focus, select:focus, textarea:focus {
   right: 9%;
 }
 .col-core-detail-flip .col-core-icons {
-  top: 47%;
+  top: 46%;
   height: 30%;
-  left: 12%;
-  right: 12%;
-  gap: 4px 6px;
+  left: 16%;
+  right: 16%;
+  gap: 2px 4px;
+  overflow: hidden;
 }
 .col-core-detail-flip .col-core-icon-chip {
   font-size: 0.7rem;
