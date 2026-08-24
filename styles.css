@@ -3269,8 +3269,8 @@ input:focus, select:focus, textarea:focus {
   width: calc(100% - 4px);
   height: calc(100% - 4px);
   object-fit: cover;
-  /* Solo cambia el encuadre dentro del hex (sin agrandar el hexágono) */
-  object-position: center 5%;
+  /* Encuadre al cuerpo del personaje: oculta franja de nombre (arriba de la carta) */
+  object-position: center 38%;
   background: rgba(10, 15, 30, 0.95);
   clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
   z-index: 2;
@@ -3281,7 +3281,7 @@ input:focus, select:focus, textarea:focus {
   height: 62px;
 }
 .col-thumb-row.hex-only .col-char-hex img {
-  object-position: center 5%;
+  object-position: center 38%;
 }
 .col-card .col-name {
   font-family: 'Orbitron', sans-serif;
